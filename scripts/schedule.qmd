@@ -1,0 +1,129 @@
+# Schedule {.unnumbered}
+Welcome to this BMI Mini-Course on an Methods in Genetic Epidemiology. The course structure is divided into three key methodologies: genome-wide association studies, polygenic risk scores, and Mendelian randomization. Each trainee will apply these methods to a trait of their choosing and, at the course's conclusion, present their findings to the class.
+
+## Week 1 04/22 - 04/26
+### Monday 04/22
+**Alzheimer's disease**
+
+In this mini-course, we will frequently reference Alzheimer's disease to illustrate various genetic epidemiology methods. This session aims to introduce Alzheimer's disease and explore significant findings related to its genetic architecture.
+
+**Readings**
+
+- Knopman, D. S. et al. Alzheimer disease. [Nat Rev Dis Primers 7, 33 (2021)](https://doi.org/10.1038/s41572-021-00269-y).
+- Alzheimer's Association. 2023 Alzheimer’s disease facts and figures. [Alzheimer’s Dementia (2023)](https://doi.org/10.1002/alz.13016).
+- Kornblith, E. et al. Association of Race and Ethnicity With Incidence of Dementia Among Older Adults. [Jama 327, 1488–1495 (2022)](https://doi.org/10.1001/jama.2022.3550).
+- Andrews, S. J. et al. The complex genetic architecture of Alzheimer’s disease: novel insights and future directions. [eBioMedicine 90, 104511 (2023)](https://doi.org/10.1016/j.ebiom.2023.104511).
+- Andrews, S. J., Fulton-Howard, B. & Goate, A. Interpretation of risk loci from genome-wide association studies of Alzheimer’s disease. [Lancet Neurology 19, 326–335 (2020)](https://doi.org/10.1016/s1474-4422(19)30435-1).
+
+### Wensday 04/24
+**Genome-Wide Association Studies**
+
+Genome-Wide Association Studies (GWAS) are foundational to various genetic analysis methodologies. In this session, we will delve into what a GWAS entails, the process of conducting one, and then engage in a hands-on exercise to carry out our own GWAS.
+
+**Readings**
+
+- Uffelmann, E. et al. Genome-wide association studies. [Nat Rev Methods Primers 1, 59 (2021)](https://www.nature.com/articles/s43586-021-00056-9).
+- Abdellaoui, A., Yengo, L., Verweij, K. J. H. & Visscher, P. M. 15 years of GWAS discovery: Realizing the promise. [Am J Hum Genetics (2023)](https://doi.org/10.1016/j.ajhg.2022.12.011)
+- Marees, A. T. et al. A tutorial on conducting genome‐wide association studies: Quality control and statistical analysis. [Int J Method Psych 27, e1608 (2018)](https://doi.org/10.1002/mpr.1608).
+- MacArthur, J. A. L. et al. Workshop proceedings: GWAS summary statistics standards and sharing. [Cell Genom 1, 100004 (2021)](https://pubmed.ncbi.nlm.nih.gov/36082306/).
+  
+**Tools**
+
+- [PLINK](https://www.cog-genomics.org/plink/) @purcell2007
+- [BCFTools](https://samtools.github.io/bcftools/howtos/index.html) @Danecek2021
+- [MungeSumStats](https://neurogenomics.github.io/MungeSumstats/) @Murphy2021 
+
+### Friday 04/26
+**Genetic Ancestry** 
+
+Genetic ancestry explores the lineage and heritage inferred from our DNA, providing insights into population history and individual heritage. This session will introduce the concepts and methodologies used in determining genetic ancestry, emphasizing their importance in genetic epidemiology research. 
+
+**Readings**
+
+- Lewis, A. C. F. et al. Getting genetic ancestry right for science and society. [Science 376, 250–252 (2022)](https://doi.org/10.1126/science.abm7530).
+- National Academies of Sciences, Engineering, and Medicine. 2023. Using Population Descriptors in Genetics and Genomics Research: A New Framework for an Evolving Field. [Washington, DC: The National Academies Press](https://doi.org/10.17226/26902).
+
+**Tools**
+
+- [ADMIXTURE](https://dalexander.github.io/admixture/) @Alexander2009
+- [RFmix](https://github.com/slowkoni/rfmix) @Maples2013
+
+## Week 2 04/29 - 05/03
+### Monday 04/29
+**Heritability & Genetic Correlations** 
+
+Heritability quantifies the proportion of phenotype variance attributable to genetic factors, whereas genetic correlations assess the extent of shared genetic architecture between traits. In this session, we will concentrate on the tools utilized to estimate these metrics from GWAS summary statistics.
+
+**Readings**
+
+- Rheenen, W. van, Peyrot, W. J., Schork, A. J., Lee, S. H. & Wray, N. R. Genetic correlations of polygenic disease traits: from theory to practice. [Nat Rev Genetics 20, 567–581 (2019)](https://doi.org/10.1038/s41576-019-0137-z).
+- Barry, C.-J. S. et al. How to estimate heritability: a guide for genetic epidemiologists. [Int J Epidemiol (2022)](https://doi.org/10.1093/ije/dyac224)
+
+**Tools**
+
+- [LDSC](https://github.com/bulik/ldsc) @BulikSullivan2015
+- [HDL](https://github.com/zhenin/HDL) @Ning2020
+- [GenomicSEM](https://github.com/GenomicSEM/GenomicSEM) @Grotzinger2019
+
+### Wensday 05/01
+**Polygenic Risk Scores I** 
+Polygenic risk scores (PRS) measure an invididueals total genetic liability for a trait. This session will cover the process of constructing a PRS and assessing its performance in predicting the trait.
+
+**Readings**
+
+- Choi, S. W., Mak, T. S.-H. & O’Reilly, P. F. Tutorial: a guide to performing polygenic risk score analyses. [Nat Protoc 15, 2759–2772 (2020)](https://www.nature.com/articles/s41596-020-0353-1).
+- Wand, H. et al. Improving reporting standards for polygenic scores in risk prediction studies. [Nature 591, 211–219 (2021)](https://www.nature.com/articles/s41586-021-03243-6).
+-  Lennon, N. J. et al. Selection, optimization and validation of ten chronic disease polygenic risk scores for clinical implementation in diverse US populations. [Nat. Med. 1–8 (2024)](doi:10.1038/s41591-024-02796-z)
+  
+**Tools**  
+
+- [PRSice2](https://choishingwan.github.io/PRSice/) @Choi2019
+- [PRSet](https://choishingwan.github.io/PRSice/quick_start_prset/) @Choi2023
+
+### Friday 05/03
+**Polygenic Risk Scores II**
+
+The accuracy of polygenic risk scores (PRS) diminishes as the genetic distance from the training population increases. This session will explore cross-ancestry PRS methods designed to enhance PRS accuracy across diverse populations.
+
+**Readings**
+
+- Kachuri, L. et al. Principles and methods for transferring polygenic risk scores across global populations. [Nat. Rev. Genet. 1–18 (2023) doi:10.1038/s41576-023-00637-2](https://www.nature.com/articles/s41576-023-00637-2).
+- Ding, Y. et al. Polygenic scoring accuracy varies across the genetic ancestry continuum. [Nature 618, 774–781 (2023)](https://www.nature.com/articles/s41586-023-06079-4).
+  
+**Tools**
+
+- [PRS-CSx](https://github.com/getian107/PRScsx) @Ruan2022
+
+## Week 3 05/06 - 05/10
+### Monday 05/06
+**Mendelian Randomization I**
+
+Mendelian Randomization (MR) is a method employed to identify causal risk factors for diseases. This session will cover  the fundamentals of MR and demonstrate how to execute a two-sample MR analysis.
+
+**Readings**
+
+- Sanderson, E. et al. Mendelian randomization. [Nat Rev Methods Primers 2, 6 (2022)](https://www.nature.com/articles/s43586-021-00092-5).
+- Davies, N. M., Holmes, M. V. & Smith, G. D. Reading Mendelian randomisation studies: a guide, glossary, and checklist for clinicians. [BMJ 362, k601 (2017)](https://www.bmj.com/content/362/bmj.k601).
+- Hemani, G. et al. The MR-Base platform supports systematic causal inference across the human phenome. [Elife 7, e34408 (2018)](https://pubmed.ncbi.nlm.nih.gov/29846171/).
+
+**Tools**
+
+- [TwoSampleMR](https://mrcieu.github.io/TwoSampleMR/) @Hemani2018
+
+### Wensday 05/08
+**Mendelian Randomization II** 
+
+A crucial aspect of Mendelian Randomization (MR) studies is assessing whether the causal associations derived from MR analyses remain valid despite potential violations of MR's underlying assumptions. This session will focus on diagnostic and sensitivity analyses in MR, along with guidance on effectively reporting MR findings.
+
+**Readings**
+
+- Skrivankova, V. W. et al. Strengthening the Reporting of Observational Studies in Epidemiology Using Mendelian Randomization. [JAMA 326, 1614–1621 (2021)](https://jamanetwork.com/journals/jama/fullarticle/2785494).
+- Skrivankova, V. W. et al. Strengthening the reporting of observational studies in epidemiology using mendelian randomisation (STROBE-MR): explanation and elaboration. [BMJ 375, n2233 (2021)](https://www.bmj.com/content/375/bmj.n2233).
+  
+
+### Friday 05/10
+**Trainee Presentations**
+
+Upon concluding this mini-course, trainees will showcase the results of their analyses.
+
+

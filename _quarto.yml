@@ -1,0 +1,39 @@
+project:
+  type: book
+  output-dir: docs
+  execute-dir: project
+
+book:
+  title: "Introduction to Genetic Epidemiology"
+  author: "Shea J Andrews, PhD"
+  date: "2024-03-14"
+  repo-url: https://github.com/AndrewsLabUCSF/IntroGeneticEpi
+  sharing: [twitter]
+  chapters:
+    - part: index.qmd
+      chapters:
+        - scripts/schedule.qmd
+    - part: scripts/gwas.qmd
+      chapters:
+        - scripts/gwas.qmd
+    - part: scripts/prs.qmd
+      chapters:
+        - scripts/prs.qmd
+    - part: scripts/mr.qmd
+      chapters:
+        - scripts/mr.qmd
+  appendices:
+    - scripts/references.qmd
+
+bibliography: references.bib
+csl: american-medical-association-no-url.csl
+
+format:
+  html:
+    theme: yeti
+    number-depth: 1
+  pdf:
+    documentclass: scrreport
+ 
+editor: visual 
+
