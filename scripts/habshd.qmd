@@ -1,0 +1,16 @@
+# HABS-HD {.unnumbered}
+
+## HapMap III
+
+Download the hapmap_3.3.hg38.vcf.gz file from the [Broad's google bucket](https://console.cloud.google.com/storage/browser/genomics-public-data/resources/broad/hg38/v0;tab=objects?prefix=&forceOnObjectsSortingFiltering=false)
+
+```{bash}
+plink --keep-allele-order \
+ --vcf resources/genetic_epi/resources_broad_hg38_v0_hapmap_3.3.hg38.vcf \
+ --double-id \
+ --make-bed \
+ --out work/hapmap3
+
+bcftools view -i 'AF > 0 && TYPE="snp" && N_ALT=1' resources/genetic_epi/resources_broad_hg38_v0_hapmap_3.3.hg38.vcf | bcftools view -H > work/hapmap3_snps.txt
+3,612,932
+```

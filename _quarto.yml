@@ -13,6 +13,9 @@ book:
     - part: index.qmd
       chapters:
         - scripts/schedule.qmd
+        - scripts/conda.qmd
+        - scripts/habshd.qmd
+        - scripts/summarystats.qmd
     - part: scripts/gwas.qmd
       chapters:
         - scripts/gwas.qmd

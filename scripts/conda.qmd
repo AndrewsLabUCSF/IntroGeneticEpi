@@ -1,0 +1,15 @@
+# Conda Env 
+
+```yaml
+name: genetic_epi
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - plink=1.90b6.21
+```
+
+
+```bash
+conda env create -f env/genetic_epi.yml
+```
