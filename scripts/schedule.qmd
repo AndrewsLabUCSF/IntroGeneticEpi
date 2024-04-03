@@ -67,6 +67,7 @@ Heritability quantifies the proportion of phenotype variance attributable to gen
 
 ### Wensday 05/01
 **Polygenic Risk Scores I** 
+
 Polygenic risk scores (PRS) measure an invididueals total genetic liability for a trait. This session will cover the process of constructing a PRS and assessing its performance in predicting the trait.
 
 **Readings**

@@ -1,16 +1,174 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
 # HABS-HD {.unnumbered}
 
-## HapMap III
+## Phenotypes
+```{r}
+library(tidyverse)
+setwd('~/gitcode/IntroGeneticEpi/')
+```
+
+```{r}
+#| label: import
+aa_v1_path = 'resources/HABSHD/v5/HD 1 African American 50+ Request 355.csv'
+ma_v1_path = 'resources/HABSHD/v5/HD 1 Mexican American 50+ Request 355.csv'
+nhw_v1_path = 'resources/HABSHD/v5/HD 1 Non-Hispanic White 50+ Request 355.csv'
+
+hd_cols = spec(read_csv(nhw_v1_path, guess_max = 10000))
+aa_v1.raw = read_csv(aa_v1_path, col_types = hd_cols,  na = c("", "NA", "9999", "-9999", "-8888", "-777777", '-888888', '-999999')) %>%
+  janitor::clean_names() 
+ma_v1.raw = read_csv(ma_v1_path, col_types = hd_cols,  na = c("", "NA", "9999", "-9999", "-8888", "-777777", '-888888', '-999999')) %>%
+  janitor::clean_names() 
+nhw_v1.raw = read_csv(nhw_v1_path, col_types = hd_cols,  na = c("", "NA", "9999", "-9999", "-8888", "-777777", '-888888', '-999999')) %>%
+  janitor::clean_names() 
+
+habshd.raw <- bind_rows(
+    aa_v1.raw, ma_v1.raw, nhw_v1.raw
+  ) %>%
+  mutate(
+    id_race_white = as.factor(id_race_white),
+    id_race_black = as.factor(id_race_black),
+    id_race_indian_alaska = as.factor(id_race_indian_alaska),
+    id_race_asian = as.factor(id_race_asian),
+    id_race_japanese = as.factor(id_race_japanese),
+    id_race_korean = as.factor(id_race_korean),
+    id_race_vietnamese = as.factor(id_race_vietnamese),
+    id_race_native_hawaiian = as.factor(id_race_native_hawaiian),
+    id_race_guam_chamorro = as.factor(id_race_guam_chamorro),
+    id_race_samoan = as.factor(id_race_samoan),
+    id_race_other_pacific = as.factor(id_race_other_pacific),
+    id_race_other = as.factor(id_race_other),
+    id_hispanic = as.factor(id_hispanic),
+    id_hispanic_other = as.factor(id_hispanic_other), 
+    race = case_when(
+      id_hispanic != 1 ~ "Hispanic", 
+      id_race_white == 1 & id_hispanic != 2 ~ "NHW", 
+      id_race_black == 1 ~ "Black",
+      TRUE ~ "Other")
+  )
+
+```
+
+```{r}
+#| label: wrangle
+
+habshd <- habshd.raw %>%
+  mutate(
+    abeta40 = ifelse(is.na(r3_qtx_plasma_abeta42), r5_qtx_plasma_abeta40, r3_qtx_plasma_abeta40), 
+    abeta42 = ifelse(is.na(r3_qtx_plasma_abeta42), r5_qtx_plasma_abeta42, r3_qtx_plasma_abeta42), 
+    ptau181 = ifelse(is.na(r3_qtx_plasma_p_tau181), r5_qtx_plasma_p_tau181, r3_qtx_plasma_p_tau181), 
+    total_tau = ifelse(is.na(r3_qtx_plasma_total_tau), r5_qtx_plasma_total_tau, r3_qtx_plasma_total_tau), 
+    nfl = ifelse(is.na(r3_qtx_plasma_nf_l), r5_qtx_plasma_nf_l, r3_qtx_plasma_nf_l)
+  ) %>%
+  select(med_id, age, interview_language, adi_state_rank, race, id_gender, apoe4_snp, 
+         id_education, cdx_cog, cdr_sum, abeta40, abeta42, ptau181, total_tau, nfl,
+         smoke_ever, gds_total, cdx_depression,
+         om_bp1_dia, om_bp1_sys, cdx_hypertension, 
+         om_height, om_weight, om_bmi, om_ab_circumference,
+         cdx_diabetes, bw_hba1c, 
+         cdx_dyslipidemia, bw_chol_total, bw_ld_lchol, bw_hdl_chol)
+
+
+```
+
+## Genotyping 
+
+TBD
+
+### HapMap III
 
 Download the hapmap_3.3.hg38.vcf.gz file from the [Broad's google bucket](https://console.cloud.google.com/storage/browser/genomics-public-data/resources/broad/hg38/v0;tab=objects?prefix=&forceOnObjectsSortingFiltering=false)
 
 ```{bash}
-plink --keep-allele-order \
- --vcf resources/genetic_epi/resources_broad_hg38_v0_hapmap_3.3.hg38.vcf \
- --double-id \
- --make-bed \
- --out work/hapmap3
-
-bcftools view -i 'AF > 0 && TYPE="snp" && N_ALT=1' resources/genetic_epi/resources_broad_hg38_v0_hapmap_3.3.hg38.vcf | bcftools view -H > work/hapmap3_snps.txt
-3,612,932
+bcftools view -i 'AF > 0 && TYPE="snp" && N_ALT=1' resources/genetic_epi/resources_broad_hg38_v0_hapmap_3.3.hg38.vcf | \
+bcftools view -H > work/hapmap3_snps.txt
 ```
+
+
+```{r}
+hm3.raw <- read_table("work/hapmap3_snps.txt", col_names = F)
+
+hm3 <- hm3.raw %>%
+  mutate(
+    cpra = glue::glue("{X1}:{X2}:{X4}:{X5}"), 
+    X1 = as.numeric(str_replace(X1, 'chr', ''))
+  ) %>%
+  filter(!is.na(X1)) %>%
+  rename(chr = X1, pos = X2, rsid = X3, ref = X4, alt = X5) %>%
+  select(-X6)
+
+out <- hm3 %>% 
+  distinct(cpra, .keep_all = T) %>%
+  distinct(rsid, .keep_all = T) 
+
+out %>% 
+  select(cpra) %>%
+  write_tsv(., 'work/hm3_extract.txt', col_names = F) 
+
+out %>% 
+  select(cpra, rsid) %>%
+  write_tsv(., 'work/hm3_crpa_rsid.txt', col_names = F) 
+
+```
+
+```{bash}
+plink \
+  --bfile resources/HABSHD/genotypes/all \
+  --keep-allele-order \
+  --extract work/hm3_extract.txt \
+  --make-bed \
+  --out work/habshd_hm3
+
+plink \
+  --bfile work/habshd_hm3 \
+  --keep-allele-order \
+  --update-name work/hm3_crpa_rsid.txt \
+  --make-bed \
+  --out work/habshd_rsid
+
+
+ 
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

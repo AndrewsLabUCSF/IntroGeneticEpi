@@ -1,5 +1,112 @@
 # Genome-wide Association Studies
 
-This is a book created from markdown and executable code.
+TBD 
 
-See @knuth84 for additional discussion of literate programming.
+
+
+## SNP QC 
+SNP level QC consists of removing markers with excessive missingness or low allele frequency. This QC increases the power to identify true associations with disease risk by removing suboptimal markers that can increase false positives. 
+
+### Call Rate & Allele frequency
+`r round((1 - snakemake@params[["geno_miss"]])*100)`% was used as the SNP call rate threshhold (usually ≥ 95% or higher), and `r snakemake@params[["MAF"]]*100`% was used as the MAF threshold (usually ≥ 1% or higher).
+<br>
+
+Filtering SNPs on MAF and call rate can be done in `PLINK 1.9` by typing the following (or similar) at the shell prompt. This uses 95% and 1% for the call-rate and MAF, respectively:
+
+
+```{bash}
+plink \
+    --bfile work/habshd_rsid \
+    --keep-allele-order \
+    --geno 0.05 --maf 0.01 \
+    --make-bed --out work/habshd_snpqc
+```
+
+### Hardy Weinberg Equilibrium
+Violations of Hardy Weinberg Equilibrium can indicate either the presence of population substructure, or the occurence of genotyping error. It is common practice to assume that violoations are indicative of genotyping error and remove SNPs in which the HWE test statistic has a corresponding p-value of less then 1x10-6. A threshold of `r snakemake@params[["HWE"]]` is used here.
+
+For case-control data, HWE is generally not tested in cases to not exclude real selection against a phenotype, so it is best to include case-control status in the PLINK files. `r CC_read`
+
+<br>
+
+Filtering SNPs on Hardy Weinberg Equilibrium for autosomes only can be done in PLINK by typing the following at the shell prompt:
+
+```{bash, eval=F}
+plink \
+    --bfile work/habshd_snpqc  \
+    --keep-allele-order \
+    --autosome \
+    --hardy \
+    --hwe 0.000001 \
+    --make-bed --out work/habshd_hwe
+```
+
+## Sample QC 
+
+### Call Rate 
+A low genotyping call rate in a sample can be indicative of poor DNA sample quality, so samples with a call rate < `r round((1 - snakemake@params[["samp_miss"]])*100)`% are excluded from further analysis.
+<br>
+
+Filtering samples on a call rate of 95% can be done in PLINK by typing the following at the shell prompt:
+```{bash, eval=F}
+plink \
+    --bfile work/habshd_hwe \
+    --keep-allele-order \
+    --mind 0.05 \
+    --make-bed --out work/habshd_sampleQC
+```
+
+### Sex Discordance
+
+Samples with discordance between self-reported and genetically predicted sex likely have errors in sample handling, such as sample swaps. Predicted sex can be determined by calculating X chromosome heterozygosity using an F test, because biological men have one X chromosome and women have two. An F value of ~0.99 indicates males, and an F value of ~0.03 indicates females. Furthermore, checking X chromosome heterozygosity may reveal sex chromosome anomalies (~0.28 in reported females; ~0.35 in males).
+
+Since sex discordance may be due to sample swaps or to incorrect phenotyping, sex discordant samples should generally be removed unless a swap can be reliably resolved.
+
+Identification of individuals with discordent sex can be done in PLINK 1.9 by typing the following at the shell prompt, which will produce a list of individuals with discordent sex data.
+
+
+```{bash, eval=F}
+plink_1.9 --bfile raw-GWA-data  \
+  --check-sex --out --out output.sexcheck
+```
+
+### Pruning 
+Pruning is typically done to remove linkage disequilibrium (LD) between SNPs, which is often a necessary step in various genetic analyses to ensure the independence of markers and is necessary for estimating heterozygosity, realtedness, and population stratification. 
+
+```{bash}
+plink \
+  --bfile work/habshd_sampleQC \
+  --indep-pairwise 50 5 0.2 \
+  --out work/indepSNP
+```
+
+### Heterozygosity check
+
+Insufficient heterozygosity can indicate inbreeding or other family substructures, while excessive heterozygosity may indicate poor sample quality.
+
+Individuals with outlying heterozygosity rates can be identified in PLINK 1.9 by typing the following command at the shell prompt:
+
+```{bash, eval=F}
+plink \
+    --bfile work/habshd_sampleQC  \
+    --extract work/indepSNP.prune.in \
+    --het --out work/habshd
+```
+
+This produces a file containing Method-of-moments F coefficient estimates, which can be used to calculate the observed heterozygosity rate in each individual. Analysis is performed using an LD pruned snplist.
+
+We calculate a heterozygocity similarly using observed and expected counts from the PLINK output [(Observed - Expected)/N) and exclude samples that are ± 3 sd from the cohort mean.
+<br>
+
+### Cryptic Relatedness
+
+Population based cohorts are often limited to unrelated individuals as associations statistics often assume independence across individuals. Closely related samples will share more of their genome and are likely to be more phenotypically similar than than two individuals chosen randomly from the population. A common measure of relatedness is identity by descent (IBD), where a kinship correlation coefficient (pi-hat) greater 0.1 suggests that samples maybe related or duplicates samples.
+
+Identifying duplicated or related samples can be done in PLINK 1.9 by typing the following command at the shell prompt.
+
+```{bash, eval=F}
+plink \
+    --bfile work/habshd_sampleQC \
+    --extract work/indepSNP.prune.in \
+    --genome --min 0.2 --out work/habshd.ibd
+```
