@@ -9,6 +9,7 @@ editor_options:
 ```{r}
 library(tidyverse)
 setwd('~/gitcode/IntroGeneticEpi/')
+setwd("~/gitcode/ABA/")
 ```
 
 ```{r}
@@ -49,7 +50,6 @@ habshd.raw <- bind_rows(
       id_race_black == 1 ~ "Black",
       TRUE ~ "Other")
   )
-
 ```
 
 ```{r}
@@ -63,16 +63,46 @@ habshd <- habshd.raw %>%
     total_tau = ifelse(is.na(r3_qtx_plasma_total_tau), r5_qtx_plasma_total_tau, r3_qtx_plasma_total_tau), 
     nfl = ifelse(is.na(r3_qtx_plasma_nf_l), r5_qtx_plasma_nf_l, r3_qtx_plasma_nf_l)
   ) %>%
-  select(med_id, age, interview_language, adi_state_rank, race, id_gender, apoe4_snp, 
-         id_education, cdx_cog, cdr_sum, abeta40, abeta42, ptau181, total_tau, nfl,
-         smoke_ever, gds_total, cdx_depression,
-         om_bp1_dia, om_bp1_sys, cdx_hypertension, 
+  select(med_id, age, id_gender, interview_language, adi_state_rank, race, 
+         id_education, smoke_ever, cdx_cog, cdx_depression,cdx_hypertension, 
+         cdx_diabetes, cdx_dyslipidemia, cdr_sum, 
+         om_bp1_dia, om_bp1_sys,
          om_height, om_weight, om_bmi, om_ab_circumference,
-         cdx_diabetes, bw_hba1c, 
-         cdx_dyslipidemia, bw_chol_total, bw_ld_lchol, bw_hdl_chol)
+         bw_chol_total, bw_ld_lchol, bw_hdl_chol, bw_hba1c, gds_total,
+         abeta40, abeta42, ptau181, total_tau, nfl,
+         apoe4_snp
+         )
 
-
+#descriptive table
+description <- c("Medical ID","","1 = Female <br> 0 = Male",
+                 "Language in which <br> interview was administered", 
+                 "Area Deprivation Index",'Black, Hispanic, NHW', 
+                 "Years of Education","Ever Smoked<br> (1:Yes, 0:No)",
+                "Cognitive Disorder:<br> 0: Cognitively Unimpaired <br>1:Mild Cognitive   
+                 Impairment<br>2: Dementia", "Depression<br> (1:Yes, 0:No)",
+                 "Hypertension <br> (1:Yes,0:No)", "Diabetes <br> (1:Yes,0:No)",
+                  "High Cholesterol (1:Yes,0:No)", 
+                 "Clinical Dementia Rating (CDR):<br> Sum of Boxes", 
+                 "Diastolic BP", "Systolic BP",  "Height (in)", "Weight (lbs)",
+                 "BMI", "Abdominal circumference (in)", "Total Cholesterol",
+                "LDL Cholesterol<br> (bad)","HDL Cholesterol<br> (good)",
+                "Hemoglobin","Geriatric Depression Scale (GDS)",
+                "abeta40","abeta42","ptau181", "total_tau","nfl",
+                "APOE Genotype")
+                 
+table_desc <- data.frame(cbind(names(habshd), description))
+table_desc %>% kbl(caption = '', col.names = c("Variable", "Description"),
+                   escape = FALSE) %>% 
+  kable_classic(full_width = FALSE, html_font = "Ariel") %>% 
+  kable_styling(font_size = 16, position = "center") %>% 
+  column_spec(1:2, border_left = F, border_right = F) %>% 
+  pack_rows("Demographics",1,7) %>% 
+  pack_rows("Clinical",8,25) %>% 
+  pack_rows("Imaging",26,30) %>% 
+  pack_rows("Genomics",31,31) 
 ```
+
+
 
 ## Genotyping 
 
