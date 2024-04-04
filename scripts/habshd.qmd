@@ -9,7 +9,7 @@ editor_options:
 ```{r}
 library(tidyverse)
 setwd('~/gitcode/IntroGeneticEpi/')
-setwd("~/gitcode/ABA/")
+SAVE_VISUALIZATIONS_PATH <- "~/Downloads"
 ```
 
 ```{r}
@@ -102,7 +102,248 @@ table_desc %>% kbl(caption = '', col.names = c("Variable", "Description"),
   pack_rows("Genomics",31,31) 
 ```
 
+### Descriptive Table
++-------------------+------------------------------+
+| **Variable**      | **Description**              | 
++-------------------+------------------------------+
+|**Demographics**   |                              |
++-------------------+------------------------------+
+| med_id            | Medical ID number\           |
+|                   | Not an MRN                   | 
++-------------------+------------------------------+
+| age               | Age (yrs)                    |                          
+|                   |                              | 
++-------------------+------------------------------+
+| id_gender         | 1:Female\                    |                        
+|                   | 0: Male                      |                        
++-------------------+------------------------------+
+|interview_language | Language in which            | 
+|                   | interview was administered\  |
+|                   | 1:English 2:Spanish          |
++-------------------+------------------------------+
+| adi_state_rank    | Area Deprivation Index\      |                        
+|                   | Levels: 1,2,..,10\           |
+|                   | 1: least disadvantaged       |
+|                   | 10: most disadvantaged       |
++-------------------+------------------------------+
+| race              | Black, NHW,                  |
+|                   | Hispanic                     |                
++-------------------+------------------------------+
+| id_education      | Years of                     |                        
+|                   | Education                    |
++-------------------+------------------------------+
+|**Clinical**       |                              |
++-------------------+------------------------------+
+| smoke_ever        | Ever smoked?                 |
+|                   | 0:No   1:Yes                 |
++-------------------+------------------------------+
+| cdx_cog           | Cognitive Disorder\          |  
+|                   | 0: Cognitively Unimpaired\   |
+|                   | 1:Mild Cognitive Impairment\ |
+|                   | 2: Dementia                  |  
++-------------------+------------------------------+
+| cdx_depression    | Depression                   |                    
+|                   | 0:No   1:Yes                 |
++-------------------+------------------------------+
+| cdx_hypertension  | Hypertension\ 0:No\  1:Yes   |
++-------------------+------------------------------+
+| cdx_diabetes      | Diabetes\ 0:No\  1:Yes       |
++-------------------+------------------------------+
+| cdx_dyslipidemia. | High Cholesterol\ 0:No\ 1:Yes|
++-------------------+--------------------------------+
+| cdr_sum           |Clinical Dementia Rating (CDR)\ |
+|                   | Sum of Boxes                   |
++-------------------+--------------------------------+
+| gds_total         |Geriatric Depression Scale (GDS)|
+|                   |sum of GDS 1 to GDS 30          |   
++-------------------+--------------------------------+
+| om_bp1_dia        | Diastolic BP                   |
++-------------------+--------------------------------+
+| om_bp1_sys        | Systolic BP                    |
++-------------------+--------------------------------+
+| om_height         | Height (in)                    |
++-------------------+--------------------------------+
+| om_weight         | Weight (lbs)                   |
++-------------------+--------------------------------+
+| om_bmi            | Body Mass Index (BMI)          |
++-------------------+--------------------------------+
+|om_ab_circumference| Abdominal Circumference (in)   |
++-------------------+--------------------------------+
+| bw_chol_total     | Total Cholesterol (mg/dL)      |
++-------------------+--------------------------------+
+| bw_ld_lchol       | LDL Cholesterol (mg/dL) (bad)  |
++-------------------+--------------------------------+
+| bw_hdl_chol       | HDL Cholesterol (mg/dL) (good) |
++-------------------+--------------------------------+
+| bw_hba1c          | Hemoglobin  A1C% of total Hgb  |
++-------------------+--------------------------------+
+| **Imaging**       |                                |
++-------------------+--------------------------------+
+| abeta40           | $A\beta_{40}$                  |
++-------------------+--------------------------------+
+| abeta42           | $A\beta_{42}$                  |
++-------------------+--------------------------------+
+| ptau181           | Phospho-Tau (pg/mL)\           |
+|                   | Average CV: 0.07065 \          |
+|                   | Avgerage LLOD: 0.016 \         |
+|                   | Average HLOD:349               |
++-------------------+--------------------------------+
+| total_tau         | Total Tau
++-------------------+--------------------------------+
+| nfl               | Neurofilament Light (pg/mL)\   |
+|                   |  Average CV: 0.038 \           |
+|                   | Avgerage LLOD: 0.038 \         |
+|                   | Average HLOD:1800              |
++-------------------+--------------------------------+
+| **Genetics **     |                                |
++-------------------+--------------------------------+
+| apoe4_snp         | APOE Genotype\                 |
+|                   | E2E3, E2E4, E3E3, E3E4, E4E4   |
++-------------------+--------------------------------+
 
+```{r}
+habshd[which(habshd$adi_state_rank=="GQ"),] <- NA
+habshd[which(habshd$adi_state_rank=="PH"),] <- NA
+habshd[which(habshd$adi_state_rank=="Invalid Address"),] <- NA
+habshd[which(habshd$smoke_ever==2),] <- NA
+habshd$adi_state_rank <- as.integer(habshd$adi_state_rank)
+
+theme_gtsummary_compact()
+demographics_table <- habshd %>% select(age,id_gender,interview_language,
+                                          adi_state_rank, race, id_education) %>% 
+                      tbl_summary(., by = race,
+                            statistic = list(
+                                    all_continuous() ~ "{mean}<br> ({sd})",
+                                    all_categorical()~ "{p}%"),
+                             digits = all_continuous()~2,
+                            label = c(age~"Age", id_gender ~ "Gender", 
+                                      interview_language ~ "Interview Language",
+                                      adi_state_rank~ "ADI State Rank",
+                                      id_education~"Education"),
+                            missing_text = "(Missing)") %>%  
+                          modify_header(label = "**Demographic <br> Variables**",
+                          all_stat_cols() ~ "**{level}**<br> N = {n}") %>% 
+                    as_gt() %>% 
+                  tab_options(column_labels.border.top.color = "black",
+                              column_labels.border.bottom.color = "black",
+                              table_body.border.bottom.color = "black",
+                              table_body.hlines.color = "white",
+                              table.font.size = 12,
+                              container.width = 500, 
+                              container.height =500) %>% 
+                  fmt_markdown(columns = everything())
+
+gtsave(demographics_table,filename = file.path(SAVE_VISUALIZATIONS_PATH, "demographics_summary.png"))
+
+#convert to factors
+cdx_cols <- names(habshd %>% select(starts_with("cdx_")))
+habshd[cdx_cols] <-lapply(habshd[cdx_cols], factor)
+
+clinical_table1 <- habshd %>% select(smoke_ever,cdx_cog,cdx_depression,
+                                     cdx_hypertension,cdx_diabetes,
+                                     cdx_dyslipidemia,cdr_sum, om_bp1_dia,
+                                     race) %>% 
+                  tbl_summary(., by = race, 
+                              statistic = list(
+                                    all_continuous() ~ "{mean} ({sd})",
+                                    all_categorical()~ "{p}%"),
+                              digits = all_continuous()~2,
+                              label = c(smoke_ever ~ "Smoke ",
+                                      cdx_cog ~ "Cognitive Disorder",
+                                      cdx_depression ~ "Depression",
+                                      cdx_hypertension ~ "Hypertension",
+                                      cdx_diabetes ~ "Diabetes",
+                                      cdx_dyslipidemia ~ "Displedemia",
+                                      cdr_sum ~ "CDR Total Score", 
+                                      om_bp1_dia ~ "Diastolic BP"),
+                missing_text = "(Missing)") %>%  
+               modify_header(label = "**Clinical Variables**",
+                              all_stat_cols() ~ "**{level}**<br> N = {n}") %>% 
+              as_gt() %>% 
+              tab_options(
+                      column_labels.border.top.color = "black",
+                      column_labels.border.bottom.color = "black",
+                      table_body.border.bottom.color = "black",
+                      table_body.hlines.color = "white",
+                      table.font.size = 12,
+                      container.height = 700,
+                      container.width = 700) %>% 
+              fmt_markdown(columns = everything()) 
+
+gtsave(clinical_table1,filename = file.path(SAVE_VISUALIZATIONS_PATH, "clinical_table1.png"))
+
+clinical_table2 <- habshd %>% select(om_bp1_sys,om_height,om_weight,
+                                     om_bmi,om_ab_circumference,bw_chol_total,
+                                     bw_ld_lchol,bw_hdl_chol,race,bw_hba1c,
+                                     gds_total,race) %>% 
+                   tbl_summary(., by = race, 
+                              statistic = list(
+                                    all_continuous() ~ "{mean} ({sd})",
+                                    all_categorical()~ "{p}%"),
+                              digits = all_continuous()~2,
+                              label = c(om_bp1_sys~"Systoliuc BP",
+                                      om_height ~ "Height (in)", 
+                                      om_weight~ "Weight(lbs)",
+                                      om_bmi ~"BMI",
+                                      om_ab_circumference~ "Abdominal <br>
+                                      Circumference (in)",
+                                      bw_chol_total ~ "Total Cholesterol",
+                                      bw_ld_lchol~ "LDL <br> Cholesterol", 
+                                      bw_hdl_chol~ "HDL <br> Cholesterol",
+                                      bw_hba1c~ "Hemoglobin",
+                                      gds_total ~ "GDS Total"),
+                             missing_text = "(Missing)") %>%  
+                 modify_header(label = "**Clinical <br> Variables**",
+                              all_stat_cols() ~ "**{level}**<br> N = {n}") %>% 
+                as_gt() %>% 
+                tab_options(
+                        column_labels.border.top.color = "black",
+                        column_labels.border.bottom.color = "black",
+                        table_body.border.bottom.color = "black",
+                        table_body.hlines.color = "white",
+                        table.font.size = 12,
+                        container.height = 700,
+                        container.width = 700) %>% 
+                fmt_markdown(columns = everything()) 
+gtsave(clinical_table2,filename = file.path(SAVE_VISUALIZATIONS_PATH, "clinical_table2.png"))
+
+habshd$apoe4_snp = as.factor(habshd$apoe4_snp)
+imaging_genetics_table <- habshd %>% select(abeta40, abeta42,ptau181, total_tau,
+                                            nfl, apoe4_snp,race) %>% 
+                          tbl_summary(., by = race,
+                                      statistic = list(
+                                            all_continuous() ~ "{mean} ({sd})",
+                                            all_categorical()~ "{p}%"),
+                                      digits = all_continuous()~2,
+                                      label = c(abeta40~"AB40",
+                                                abeta42~"AB42",
+                                                ptau181 ~ "pTau", 
+                                                total_tau ~ "Total Tau",
+                                                nfl~ "Plasma NFL", 
+                                                apoe4_snp ~ "APOE4 SNP"),
+                                     missing_text = "(Missing)") %>%  
+                        modify_header(label = "**Imaging & Genetic <br>
+                                      Variables**",
+                                  all_stat_cols() ~ "**{level}**<br> N = {n}") %>% 
+                        as_gt() %>% 
+                        tab_options(
+                                column_labels.border.top.color = "black",
+                                column_labels.border.bottom.color = "black",
+                                table_body.border.bottom.color = "black",
+                                table_body.hlines.color = "white",
+                                table.font.size = 12, 
+                                container.width = 700, 
+                                container.height =700) %>% 
+                      fmt_markdown(columns = everything())
+
+gtsave(imaging_genetics_table,filename = file.path(SAVE_VISUALIZATIONS_PATH, "imaging_genetic_table.png")) 
+```
+![Table1](~/Downloads/demographics_summary.png)
+
+
+![Table2](~/Downloads/clinical_table1.png)
+![Table3](~/Downloads/clinical_table2.png)
+![Table4](~/Downloads/imaging_genetic_table.png)
 
 ## Genotyping 
 
