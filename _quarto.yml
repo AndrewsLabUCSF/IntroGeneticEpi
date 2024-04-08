@@ -16,6 +16,7 @@ book:
         - scripts/conda.qmd
         - scripts/habshd.qmd
         - scripts/summarystats.qmd
+        - scripts/ancestry.qmd
     - part: scripts/gwas.qmd
       chapters:
         - scripts/gwas.qmd

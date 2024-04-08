@@ -1,0 +1,24 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+# Genetic Ancestry {.unnumbered}
+
+## Prinicpal Component Analysis 
+```{bash}
+plink \
+    --keep-allele-order \
+    --bfile resources/genetic_epi/imputed_1kG_merged \
+    --fam resources/genetic_epi/imputed_1kG_merged_fixed.fam \
+    --pca 10 \
+    --within resources/genetic_epi/1kG_pops.txt \
+    --pca-clusters resources/genetic_epi/1kG_pops_unique.txt \
+    --out work/imputed_1kG_merged
+```
+
+## ADMIXTURE 
+```{bash}
+admixture -P -s 42 habshd_merged_gnomad-hgdp-1kg.hg38.bed 12 -j1
+
+```
