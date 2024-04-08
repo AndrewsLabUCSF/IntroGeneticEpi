@@ -1,0 +1,111 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+# GWAS-SS {.unnumbered}
+
+Polygenic risk scores, Two-sample Mendelian Randomization, and Genetic Correlation methods require the use of summary statistics from genome-wide association studies, including single nucleotide polymorphisms (SNPs), beta coefficients, standard errors, p-values, and allele frequencies. However, the historical lack of standards for data content and file formats in GWAS summary statistics has resulted in heterogeneous data sets. To address this issue, standardizing and harmonizing the GWAS summary statistics is crucial before conducting MR analyses. The [GWAS Catalog](https://www.ebi.ac.uk/gwas/home) and [OpenGWAS](https://gwas.mrcieu.ac.uk/) platforms have developed formats such as GWAS-SSF (Hayhurst et al. 2022) and GWAS-VCF (Lyon et al. 2021) to facilitate sharing of GWAS SumStats. Tools like [MungeSumstats](https://neurogenomics.github.io/MungeSumstats/index.html) (Murphy et al 2021) and GWAS2VCF (Lyon et al. 2021) are available that provide rapid standardization and quality control of GWAS SumStats.
+
+## AD GWAS 
+
+We download the International Genomics of Alzheimer's Project (IGAP) Alzheimer’s disease GWAS of Kunkle et al. Nat Genet, 2019. from the GWAS catalouge. These summary statistics correspond to the meta-analysis results obtained in stage 1 including genotyped and imputed data (11,480,632 variants, phase 1 integrated release 3, March 2012) of 21,982 Alzheimer’s disease cases and 41,944 cognitively normal controls.
+
+
+The Summary statistics consists of the following information for each SNP and its association to Alzheimer's disease based on meta-analysis in the publication mentioned below. 
+
+- Chromosome: Chromosome of the SNP (Build 37, Assembly Hg19)
+- Position: Position of the SNP (Build 37, Assembly Hg19)
+- MarkerName: SNP rsID or chromosome:position:I/D if rsID not available. I/D indicates indel or deletion respectively.
+- Effect_allele: Reference allele (coded allele)
+- Non_Effect_allele: Non reference allele (non coded allele)
+- Beta: Overall estimated effect size for the effect allele
+- SE: Overall standard error for effect size estimate
+- Pvalue: Meta-analysis Pvalue using regression coefficients (beta and standard error)
+
+
+```{bash}
+curl https://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/GCST007001-GCST008000/GCST007511/Kunkle_etal_Stage1_results.txt > resources/Kunkle_etal_Stage1_results.txt
+```
+
+## MungeSumstats
+
+The MungeSumstats package is designed to facilitate the standardisation of GWAS summary statistics. 
+
+
+```{r}
+library(tidyverse)
+
+```
+
+```{r}
+
+load.raw <- read_table('resources/Kunkle_etal_Stage1_results.txt')
+
+load <- load.raw %>%
+  filter(nchar(Effect_allele) == 1 & nchar(Non_Effect_allele) == 1) %>%
+  mutate(
+    Ncaas = 21982,
+    Nctrl = 41944,
+    N = 63926
+  )
+
+reformatted <- 
+  MungeSumstats::format_sumstats(path=load,
+                                 ref_genome="GRCh37", 
+                                 dbSNP = 144, 
+                                 return_data = TRUE
+                                 ) %>%
+  as_tibble()
+
+```
+
+
+## Manhattan Plot
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -9,7 +9,6 @@ editor_options:
 ```{r}
 library(tidyverse)
 setwd('~/gitcode/IntroGeneticEpi/')
-setwd("~/gitcode/ABA/")
 ```
 
 ```{r}
@@ -73,6 +72,8 @@ habshd <- habshd.raw %>%
          apoe4_snp
          )
 
+write_csv(habshd, "work/habshd_pheno.csv")
+
 #descriptive table
 description <- c("Medical ID","","1 = Female <br> 0 = Male",
                  "Language in which <br> interview was administered", 
@@ -118,7 +119,7 @@ bcftools view -H > work/hapmap3_snps.txt
 ```
 
 
-```{r}
+```{r, eval=F}
 hm3.raw <- read_table("work/hapmap3_snps.txt", col_names = F)
 
 hm3 <- hm3.raw %>%
@@ -144,7 +145,7 @@ out %>%
 
 ```
 
-```{bash}
+```{bash, eval=F}
 plink \
   --bfile resources/HABSHD/genotypes/all \
   --keep-allele-order \
@@ -157,10 +158,7 @@ plink \
   --keep-allele-order \
   --update-name work/hm3_crpa_rsid.txt \
   --make-bed \
-  --out work/habshd_rsid
-
-
- 
+  --out work/habshd_rsid 
 ```
 
 
