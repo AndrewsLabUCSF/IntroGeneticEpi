@@ -16,13 +16,16 @@ book:
         - scripts/conda.qmd
         - scripts/habshd.qmd
         - scripts/summarystats.qmd
-    - part: scripts/gwas.qmd
+    - part: "Genome-wide Association Studies"
       chapters:
+        - scripts/gwas_qc.qmd
         - scripts/gwas.qmd
-    - part: scripts/prs.qmd
+        - scripts/gwas_ss.qmd
+        - scripts/ancestry.qmd
+    - part: "Polygenic Risk Scores"
       chapters:
         - scripts/prs.qmd
-    - part: scripts/mr.qmd
+    - part: "Mendelian Randomization"
       chapters:
         - scripts/mr.qmd
   appendices:
