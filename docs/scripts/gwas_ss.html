@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Introduction to Genetic Epidemiology - GWAS</title>
+<title>Introduction to Genetic Epidemiology - GWAS-SS</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -93,8 +93,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../scripts/gwas_ss.html" rel="next">
-<link href="../scripts/gwas_qc.html" rel="prev">
+<link href="../scripts/ancestry.html" rel="next">
+<link href="../scripts/gwas.html" rel="prev">
 <script src="../site_libs/quarto-html/quarto.js"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -133,7 +133,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <header id="quarto-header" class="headroom fixed-top">
   <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
     <div class="container-fluid d-flex justify-content-between">
-      <h1 class="quarto-secondary-nav-title">GWAS</h1>
+      <h1 class="quarto-secondary-nav-title">GWAS-SS</h1>
       <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
         <i class="bi bi-chevron-right"></i>
       </button>
@@ -205,12 +205,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/gwas.html" class="sidebar-item-text sidebar-link active">GWAS</a>
+  <a href="../scripts/gwas.html" class="sidebar-item-text sidebar-link">GWAS</a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/gwas_ss.html" class="sidebar-item-text sidebar-link">GWAS-SS</a>
+  <a href="../scripts/gwas_ss.html" class="sidebar-item-text sidebar-link active">GWAS-SS</a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -274,10 +274,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#import" id="toc-import" class="nav-link active" data-scroll-target="#import">Import</a></li>
-  <li><a href="#phenotype-file" id="toc-phenotype-file" class="nav-link" data-scroll-target="#phenotype-file">Phenotype File</a></li>
-  <li><a href="#covariate-file" id="toc-covariate-file" class="nav-link" data-scroll-target="#covariate-file">Covariate File</a></li>
-  <li><a href="#gwas" id="toc-gwas" class="nav-link" data-scroll-target="#gwas">GWAS</a></li>
+  <li><a href="#ad-gwas" id="toc-ad-gwas" class="nav-link active" data-scroll-target="#ad-gwas">AD GWAS</a></li>
+  <li><a href="#mungesumstats" id="toc-mungesumstats" class="nav-link" data-scroll-target="#mungesumstats">MungeSumstats</a></li>
   <li><a href="#manhattan-plot" id="toc-manhattan-plot" class="nav-link" data-scroll-target="#manhattan-plot">Manhattan Plot</a></li>
   </ul>
 </nav>
@@ -287,7 +285,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title d-none d-lg-block">GWAS</h1>
+<h1 class="title d-none d-lg-block">GWAS-SS</h1>
 </div>
 
 
@@ -302,58 +300,69 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header>
 
-<p>TBD</p>
-<section id="import" class="level2">
-<h2 class="anchored" data-anchor-id="import">Import</h2>
+<p>Polygenic risk scores, Two-sample Mendelian Randomization, and Genetic Correlation methods require the use of summary statistics from genome-wide association studies, including single nucleotide polymorphisms (SNPs), beta coefficients, standard errors, p-values, and allele frequencies. However, the historical lack of standards for data content and file formats in GWAS summary statistics has resulted in heterogeneous data sets. To address this issue, standardizing and harmonizing the GWAS summary statistics is crucial before conducting MR analyses. The <a href="https://www.ebi.ac.uk/gwas/home">GWAS Catalog</a> and <a href="https://gwas.mrcieu.ac.uk/">OpenGWAS</a> platforms have developed formats such as GWAS-SSF (Hayhurst et al.&nbsp;2022) and GWAS-VCF (Lyon et al.&nbsp;2021) to facilitate sharing of GWAS SumStats. Tools like <a href="https://neurogenomics.github.io/MungeSumstats/index.html">MungeSumstats</a> (Murphy et al 2021) and GWAS2VCF (Lyon et al.&nbsp;2021) are available that provide rapid standardization and quality control of GWAS SumStats.</p>
+<section id="ad-gwas" class="level2">
+<h2 class="anchored" data-anchor-id="ad-gwas">AD GWAS</h2>
+<p>We download the International Genomics of Alzheimer’s Project (IGAP) Alzheimer’s disease GWAS of Kunkle et al.&nbsp;Nat Genet, 2019. from the GWAS catalouge. These summary statistics correspond to the meta-analysis results obtained in stage 1 including genotyped and imputed data (11,480,632 variants, phase 1 integrated release 3, March 2012) of 21,982 Alzheimer’s disease cases and 41,944 cognitively normal controls.</p>
+<p>The Summary statistics consists of the following information for each SNP and its association to Alzheimer’s disease based on meta-analysis in the publication mentioned below.</p>
+<ul>
+<li>Chromosome: Chromosome of the SNP (Build 37, Assembly Hg19)</li>
+<li>Position: Position of the SNP (Build 37, Assembly Hg19)</li>
+<li>MarkerName: SNP rsID or chromosome:position:I/D if rsID not available. I/D indicates indel or deletion respectively.</li>
+<li>Effect_allele: Reference allele (coded allele)</li>
+<li>Non_Effect_allele: Non reference allele (non coded allele)</li>
+<li>Beta: Overall estimated effect size for the effect allele</li>
+<li>SE: Overall standard error for effect size estimate</li>
+<li>Pvalue: Meta-analysis Pvalue using regression coefficients (beta and standard error)</li>
+</ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>fam <span class="ot">&lt;-</span> <span class="fu">read_table</span>(<span class="st">'work/habshd_gwas.fam'</span>, <span class="at">col_names =</span> <span class="fu">c</span>(<span class="st">'FID'</span>, <span class="st">'IID'</span>))</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>habshd <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"work/habshd_pheno.csv"</span>) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>(med_id, <span class="at">.keep_all =</span> T)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>pc <span class="ot">&lt;-</span> pca <span class="ot">&lt;-</span> <span class="fu">read_delim</span>(<span class="st">'work/habshd.eigenvec'</span>, </span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                  <span class="at">delim =</span> <span class="st">" "</span>, <span class="at">col_names =</span> <span class="fu">c</span>(<span class="st">"FID"</span>, <span class="st">"IID"</span>, <span class="fu">paste0</span>(<span class="st">"PC"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>)),</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">col_types =</span> <span class="fu">cols</span>(<span class="at">.default =</span> <span class="st">"d"</span>, <span class="at">FID =</span> <span class="st">"c"</span>, <span class="at">IID =</span> <span class="st">"d"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> https://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/GCST007001-GCST008000/GCST007511/Kunkle_etal_Stage1_results.txt <span class="op">&gt;</span> resources/Kunkle_etal_Stage1_results.txt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="phenotype-file" class="level2">
-<h2 class="anchored" data-anchor-id="phenotype-file">Phenotype File</h2>
+<section id="mungesumstats" class="level2">
+<h2 class="anchored" data-anchor-id="mungesumstats">MungeSumstats</h2>
+<p>The MungeSumstats package is designed to facilitate the standardisation of GWAS summary statistics.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>pheno <span class="ot">&lt;-</span> fam <span class="sc">%&gt;%</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(<span class="fu">select</span>(habshd, med_id, cdr_sum), <span class="at">by =</span> <span class="fu">c</span>(<span class="st">'IID'</span> <span class="ot">=</span> <span class="st">'med_id'</span>)) </span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>pheno <span class="sc">%&gt;%</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">write_tsv</span>(<span class="st">'work/habshd_gwas.pheno'</span>, <span class="at">col_names =</span> F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.3     ✔ readr     2.1.4
+✔ forcats   1.0.0     ✔ stringr   1.5.0
+✔ ggplot2   3.4.4     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.0
+✔ purrr     1.0.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
 </div>
-</section>
-<section id="covariate-file" class="level2">
-<h2 class="anchored" data-anchor-id="covariate-file">Covariate File</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>covar <span class="ot">&lt;-</span> fam <span class="sc">%&gt;%</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(<span class="fu">select</span>(habshd, med_id, age, id_gender), <span class="at">by =</span> <span class="fu">c</span>(<span class="st">'IID'</span> <span class="ot">=</span> <span class="st">'med_id'</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(<span class="fu">select</span>(pc, IID, PC1, PC2, PC3, PC4), <span class="at">by =</span> <span class="st">'IID'</span>) </span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>covar <span class="sc">%&gt;%</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">write_tsv</span>(<span class="st">'work/habshd_gwas.covar'</span>, <span class="at">col_names =</span> F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</section>
-<section id="gwas" class="level2">
-<h2 class="anchored" data-anchor-id="gwas">GWAS</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">plink</span> <span class="dt">\</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--bfile</span> work/habshd_gwas <span class="dt">\</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--pheno</span> work/habshd_gwas.pheno <span class="dt">\</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--covar</span> work/habshd_gwas.covar <span class="dt">\</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--linear</span> hide-covar <span class="dt">\</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--out</span> results/habshd_cdr_gwas</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>load.raw <span class="ot">&lt;-</span> <span class="fu">read_table</span>(<span class="st">'resources/Kunkle_etal_Stage1_results.txt'</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>load <span class="ot">&lt;-</span> load.raw <span class="sc">%&gt;%</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">nchar</span>(Effect_allele) <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> <span class="fu">nchar</span>(Non_Effect_allele) <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">Ncaas =</span> <span class="dv">21982</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">Nctrl =</span> <span class="dv">41944</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">N =</span> <span class="dv">63926</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>reformatted <span class="ot">&lt;-</span> </span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  MungeSumstats<span class="sc">::</span><span class="fu">format_sumstats</span>(<span class="at">path=</span>load,</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">ref_genome=</span><span class="st">"GRCh37"</span>, </span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">dbSNP =</span> <span class="dv">144</span>, </span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">return_data =</span> <span class="cn">TRUE</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>                                 ) <span class="sc">%&gt;%</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>()</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="fu">write_tsv</span>(reformatted, <span class="st">'work/Kunkle2019load.tsv.gz'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="manhattan-plot" class="level2">
 <h2 class="anchored" data-anchor-id="manhattan-plot">Manhattan Plot</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>gwas.raw <span class="ot">&lt;-</span> <span class="fu">read_table</span>(<span class="st">'results/habshd_cdr_gwas.assoc.linear'</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>X10)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>ggman<span class="sc">::</span><span class="fu">ggman</span>(gwas.raw, <span class="at">snp =</span> <span class="st">"SNP"</span>, <span class="at">bp =</span> <span class="st">"BP"</span>, <span class="at">chrom =</span> <span class="st">"CHR"</span>, <span class="at">pvalue =</span> <span class="st">"P"</span>, <span class="at">relative.positions =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> </span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
 </div>
 
 
@@ -495,13 +504,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../scripts/gwas_qc.html" class="pagination-link">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">GWAS QC</span>
+      <a href="../scripts/gwas.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">GWAS</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../scripts/gwas_ss.html" class="pagination-link">
-        <span class="nav-page-text">GWAS-SS</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../scripts/ancestry.html" class="pagination-link">
+        <span class="nav-page-text">Genetic Ancestry</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

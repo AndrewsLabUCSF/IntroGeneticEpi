@@ -19,7 +19,8 @@ SNP level QC consists of removing markers with excessive missingness or low alle
 Filtering SNPs on MAF and call rate can be done in `PLINK 1.9` by typing the following (or similar) at the shell prompt. This uses 95% and 1% for the call-rate and MAF, respectively:
 
 
-```{bash, eval=F}
+```{bash}
+#| eval: false
 # Generate frequency reports
 plink \
     --bfile work/habshd_rsid \
@@ -41,7 +42,8 @@ plink \
     --make-bed --out work/habshd_snpqc  
 ```
 
-```{r snp_qc, echo=F, cache=F}
+```{r}
+#| eval: false
 ## ==== SNP Level Filtering ====
 # ---- readin plink .frq ---- ##
 message("reading plink frq file")
@@ -80,9 +82,10 @@ snps <- freq.raw %>%
   mutate(Call.maf = MAF < 0.01) 
 ```
 
-Figure \@ref(fig:MAFxcallrate) shows the SNP call rate versus minor allele frequncy across all typed SNPs in the study. The dashed lines denote the MAF and call rate QC thresholds. `r nrow(filter(snps, Call == F))` SNPs were removed due to low call rate and `r nrow(filter(snps, Call.maf == T))` SNPs were removed due to low minor allele frequency.
+Figure \@ref(fig:MAFxcallrate) shows the SNP call rate versus minor allele frequncy across all typed SNPs in the study. The dashed lines denote the MAF and call rate QC thresholds. xxx SNPs were removed due to low call rate and xxx SNPs were removed due to low minor allele frequency.
 
-```{r MAFxcallrate, cache=F, echo=F, warning=F, fig.width=7.5, fig.height=5.7, fig.align='center', fig.cap='Call rate by minor allele frequency '}
+```{r}
+#| eval: false
 MAFxcallrate.p <- ggplot(data = snps, aes(x = MAF, y = Call.rate)) +
   geom_point(alpha = 0.3, size = 0.5) +
   geom_hline(yintercept = 1 - 0.05, linetype = 2, colour = 'red') +
@@ -95,15 +98,16 @@ ggsave('results/plots/MAFxcallrate.png', plot = MAFxcallrate.p, height = 4, widt
 ```
 
 ### Hardy Weinberg Equilibrium
-Violations of Hardy Weinberg Equilibrium can indicate either the presence of population substructure, or the occurence of genotyping error. It is common practice to assume that violoations are indicative of genotyping error and remove SNPs in which the HWE test statistic has a corresponding p-value of less then 1x10-6. A threshold of `r snakemake@params[["HWE"]]` is used here.
+Violations of Hardy Weinberg Equilibrium can indicate either the presence of population substructure, or the occurence of genotyping error. It is common practice to assume that violoations are indicative of genotyping error and remove SNPs in which the HWE test statistic has a corresponding p-value of less then 1x10-6. A threshold of xxx is used here.
 
-For case-control data, HWE is generally not tested in cases to not exclude real selection against a phenotype, so it is best to include case-control status in the PLINK files. `r CC_read`
+For case-control data, HWE is generally not tested in cases to not exclude real selection against a phenotype, so it is best to include case-control status in the PLINK files. 
 
 <br>
 
 Filtering SNPs on Hardy Weinberg Equilibrium for autosomes only can be done in PLINK by typing the following at the shell prompt:
 
-```{bash, eval=F}
+```{bash}
+#| eval: false
 plink \
     --bfile work/habshd_snpqc  \
     --keep-allele-order \
@@ -114,6 +118,7 @@ plink \
 ```
 
 ```{r}
+#| eval: false
 # ---- readin plink .hwe ---- ##
 message("reading plink hwe file")
 hwe.raw <- read_table2('work/habshd_hwe.hwe', col_types = cols(
@@ -157,11 +162,12 @@ ggsave('results/plots/hweplot.png', plot = hweplot, height = 4, width = 6, units
 ## Sample QC 
 
 ### Call Rate 
-A low genotyping call rate in a sample can be indicative of poor DNA sample quality, so samples with a call rate < `r round((1 - snakemake@params[["samp_miss"]])*100)`% are excluded from further analysis.
+A low genotyping call rate in a sample can be indicative of poor DNA sample quality, so samples with a call rate < xxx% are excluded from further analysis.
 <br>
 
 Filtering samples on a call rate of 95% can be done in PLINK by typing the following at the shell prompt:
-```{bash, eval=F}
+```{bash}
+#| eval: false
 plink \
     --bfile work/habshd_hwe \
     --keep-allele-order \
@@ -178,7 +184,8 @@ Since sex discordance may be due to sample swaps or to incorrect phenotyping, se
 Identification of individuals with discordent sex can be done in PLINK 1.9 by typing the following at the shell prompt, which will produce a list of individuals with discordent sex data.
 
 
-```{bash, eval=F}
+```{bash}
+#| eval: false
 plink \
     --bfile resources/HABSHD/genotypes/HABLE_GSA_20230418a_FINAL  \
     --check-sex --out work/HABLE_GSA_20230418a
@@ -191,7 +198,8 @@ awk 'FNR==1 && NR==1 {print; next} FNR>1 {print}' work/HABLE_GSA_20220602.sexche
 ```
 
 
-```{r read in sex check data, echo=F, message=F, warning=F, eval=T}
+```{r}
+#| eval: false
 ## ---- Read in Data ----##
 sexcheck.raw <- read_table2('work/habshd_sexcheck.txt')
 
@@ -206,7 +214,8 @@ sex_exclude.samples <- sexcheck %>%
 ```
 
 The following plot (Fig. \@ref(fig:sexplot)) displays the X Chromosome heterozygosity for self reported sex, with samples with problems highlighted in red. Table \@ref(tab:sextab) displays the individule records that should be excluded from further downstream analysis.
-```{r sexplot, echo=FALSE, fig.width=5.5, fig.height=4.7, fig.align='center', fig.cap='X chromosome heterozygosity in self reported males & females', eval=T}
+```{r}
+#| eval: false
 sexcheck.p <- ggplot(data = sexcheck, aes(x = as.factor(PEDSEX), y = F, colour = STATUS, shape = STATUS)) +
   geom_jitter() +
   scale_color_manual(values = c( "#377EB8", "#E41A1C")) +
@@ -219,7 +228,8 @@ ggsave('results/plots/sexcheck.png', plot = sexcheck.p, height = 4, width = 6, u
 ### Pruning 
 Pruning is typically done to remove linkage disequilibrium (LD) between SNPs, which is often a necessary step in various genetic analyses to ensure the independence of markers and is necessary for estimating heterozygosity, realtedness, and population stratification. 
 
-```{bash, eval=F}
+```{bash}
+#| eval: false
 plink \
   --bfile work/habshd_sampleQC \
   --indep-pairwise 50 5 0.2 \
@@ -232,7 +242,8 @@ Insufficient heterozygosity can indicate inbreeding or other family substructure
 
 Individuals with outlying heterozygosity rates can be identified in PLINK 1.9 by typing the following command at the shell prompt:
 
-```{bash, eval=F}
+```{bash}
+#| eval: false
 plink \
     --bfile work/habshd_sampleQC  \
     --extract work/indepSNP.prune.in \
@@ -244,7 +255,8 @@ This produces a file containing Method-of-moments F coefficient estimates, which
 We calculate a heterozygocity similarly using observed and expected counts from the PLINK output [(Observed - Expected)/N) and exclude samples that are ± 3 sd from the cohort mean.
 <br>
 
-```{r data_wrangling heterozygosity, echo=F}
+```{r}
+#| eval: false
 ## ---- Read in Data ----##
 het.raw <- read_table('work/habshd.het')
 
@@ -264,8 +276,9 @@ het <- het %>%
 het_exclude.samples <- het %>% filter(exclude == TRUE)
 ```
 
-Figure \@ref(fig:plothet) displays the distrubution of heterozygosity in `r snakemake@wildcards[["sample"]]`. Samples with excessive (Het > `r upper.het`) or deficient (Het < `r lower.het`) heterozygosity are colored red. Table \@ref(tab:het) displays samples that are to be excluded.
-```{r plothet, echo=FALSE, fig.width=7.5, fig.height=4.7, fig.align='center', fig.cap='Distribution of heterozygosity'}
+Figure \@ref(fig:plothet) displays the distrubution of heterozygosity in xxx. Samples with excessive (Het > xxx) or deficient (Het < xxx) heterozygosity are colored red. Table \@ref(tab:het) displays samples that are to be excluded.
+```{r}
+#| eval: false
 heterozygosity.p <- ggplot(het, aes(x = Het, fill = exclude)) + geom_histogram(binwidth = 0.001) +
   geom_vline(xintercept = upper.het, colour = 'red', linetype = 2) +
   geom_vline(xintercept = lower.het, colour = 'red', linetype = 2) +
@@ -282,6 +295,7 @@ Population based cohorts are often limited to unrelated individuals as associati
 
 
 ```{r}
+#| eval: false
 # IBD relationship table
 # https://github.com/WheelerLab/GWAS_QC/blob/master/example_pipelines/QC%20Analysis%20-%20Cox%20Lab%20Projects.pdf
 
@@ -307,7 +321,8 @@ rel_tab_filt <- rel_tab %>%
 
 Identifying duplicated or related samples can be done in PLINK 1.9 by typing the following command at the shell prompt.
 
-```{bash, eval=F}
+```{bash}
+#| eval: false
 plink \
     --bfile work/habshd_sampleQC \
     --extract work/indepSNP.prune.in \
@@ -316,6 +331,7 @@ plink \
 
 
 ```{r}
+#| eval: false
 # select samples with kinship cofficents > 0.1875
 # https://link.springer.com/protocol/10.1007/978-1-60327-367-1_19
 pi_hat_thres = 0.1875
@@ -400,6 +416,7 @@ ibdcoeff_unrelated <- remove_samples(ibdcoeff, fam)
 The following histogram (Fig. \@ref(fig:kinplot)) shows the distribution of proportion of IBD sharing (pi-hat in PLINK; PropIBD in KING) between all pairs.
 
 ```{r}
+#| eval: false
 ggplot(relatedness, aes(x = PI_HAT)) +
   geom_histogram(binwidth = 0.01, fill = "#377EB8") +
   scale_y_continuous(trans = 'log10', breaks = scales::trans_breaks("log10", function(x) round(10^x, 3))) + 
@@ -412,9 +429,10 @@ ggplot(relatedness, aes(x = PI_HAT)) +
 
 ```
 
-The following plot (Fig. \@ref(fig:relplot)) shows the `r plot2Ydesc` by the proportion of loci where individuals share zero alleles (Z0), where the proportion of IBD sharing is greater than 0.05. In family based studies, pairs are colored by IBD relationship. Table \@ref(tab:ibdfail) displays the individuals where the kinship coefficient was greater than `r snakemake@params[["pi_threshold"]]` in population based studies OR how were duplicates in family based studies.
+The following plot (Fig. \@ref(fig:relplot)) shows the xxx by the proportion of loci where individuals share zero alleles (Z0), where the proportion of IBD sharing is greater than 0.05. In family based studies, pairs are colored by IBD relationship. Table \@ref(tab:ibdfail) displays the individuals where the kinship coefficient was greater than xxx in population based studies OR how were duplicates in family based studies.
 
 ```{r}
+#| eval: false
 ggplot(ibdcoeff, aes(x = Z0, y = Z1, color = relationship)) + 
   geom_point() + 
   labs(x = 'P(IBD=0)', y = "P(IBD=0)") + 
@@ -429,7 +447,8 @@ After excluding population outliers from the dataset, population substructure wi
 
 To obtain the principal components for the sample dataset after population outliers have been removed, type the following PLINK 1.9 commands at the shell prompt to generate the principal component eigenvalue and eigenvector files.
 
-```{bash, eval=F}
+```{bash}
+#| eval: false
 plink \
     --bfile work/habshd_sampleQC \
     --extract work/indepSNP.prune.in \
@@ -439,7 +458,7 @@ plink \
 
 
 ```{r}
- and
+#| eval: false
 # PCA file from plink
 
 zscore = function(x){(x - mean(x, na.rm = TRUE)) / sd(x, na.rm = TRUE)}
@@ -464,7 +483,8 @@ eigenval <- tibble(eigenval = eigenval.raw,
 ### Scree Plot
 The below scree plot (Fig. \@ref(fig:ScreePlotStrat)) shows the amount of variation retained by each principal component (Left) and the cumualtive proportion of variance explained by each principal compoent (Right).
 
-```{r ScreePlotStrat, echo=F, fig.width=7.5, fig.height=4.7, fig.align='center', fig.cap='Scree Plot of PVE for 10 Principal components (left) and cumaltive PVE for 10 Principal Components (right)'}
+```{r}
+#| eval: false
 #Include the number of PC for where the cumualtive PVE is 95%
 PC.inc <-  findInterval(0.95, cumsum(eigenval$PVE)) + 1
 
@@ -486,9 +506,10 @@ gridExtra::grid.arrange(p1, p2, ncol = 2)
 
 
 ### Population substructure
-The following plots show the population structure of `r snakemake@wildcards[["sample"]]` based on the first two (Fig. \@ref(fig:2PCstrat)) and three (Fig. \@ref(fig:3PCstrat))) principal components compared with the reference populations from 1000 Genomes.
+The following plots show the population structure of xxx based on the first two (Fig. \@ref(fig:2PCstrat)) and three (Fig. \@ref(fig:3PCstrat))) principal components compared with the reference populations from 1000 Genomes.
 
-```{r 2PCstrat, echo=F, fig.width=7.5, fig.height=4.7, fig.align='center', fig.cap='Population substructure clustering for PC 1 & 2'}
+```{r}
+#| eval: false
 ##  Plot Superpopulations, PC1 + PC2
 ggplot(pca, aes(x = PC2, y = PC1, color = race)) +
   geom_point() +
@@ -499,7 +520,7 @@ ggplot(pca, aes(x = PC2, y = PC1, color = race)) +
 ### Exclude Samples 
 
 ```{r}
-
+#| eval: false
 bind_rows(
   sex_exclude.samples, 
   het_exclude.samples,
@@ -514,7 +535,8 @@ bind_rows(
 ```
 
 
-```{bash, eval=F}
+```{bash}
+#| eval: false
 plink \
     --bfile work/habshd_sampleQC \
     --keep-allele-order \

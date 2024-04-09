@@ -7,6 +7,7 @@ editor_options:
 
 ## Prinicpal Component Analysis 
 ```{bash}
+#| eval: false
 plink \
     --keep-allele-order \
     --bfile resources/genetic_epi/imputed_1kG_merged \
@@ -19,6 +20,7 @@ plink \
 
 ## ADMIXTURE 
 ```{bash}
+#| eval: false
 admixture -P -s 42 habshd_merged_gnomad-hgdp-1kg.hg38.bed 12 -j1
 
 ```

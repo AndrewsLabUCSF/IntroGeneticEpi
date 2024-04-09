@@ -25,6 +25,7 @@ The Summary statistics consists of the following information for each SNP and it
 
 
 ```{bash}
+#| eval: false
 curl https://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/GCST007001-GCST008000/GCST007511/Kunkle_etal_Stage1_results.txt > resources/Kunkle_etal_Stage1_results.txt
 ```
 
@@ -39,7 +40,7 @@ library(tidyverse)
 ```
 
 ```{r}
-
+#| eval: false
 load.raw <- read_table('resources/Kunkle_etal_Stage1_results.txt')
 
 load <- load.raw %>%
@@ -65,7 +66,7 @@ write_tsv(reformatted, 'work/Kunkle2019load.tsv.gz')
 ## Manhattan Plot
 
 ```{r}
-
+#| eval: false
 ```
 
 

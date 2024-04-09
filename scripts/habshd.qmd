@@ -7,6 +7,7 @@ editor_options:
 
 ## Phenotypes
 ```{r}
+#| eval: false
 library(tidyverse)
 setwd('~/gitcode/IntroGeneticEpi/')
 SAVE_VISUALIZATIONS_PATH <- "~/Downloads"
@@ -14,6 +15,7 @@ SAVE_VISUALIZATIONS_PATH <- "~/Downloads"
 
 ```{r}
 #| label: import
+#| eval: false
 aa_v1_path = 'resources/HABSHD/v5/HD 1 African American 50+ Request 355.csv'
 ma_v1_path = 'resources/HABSHD/v5/HD 1 Mexican American 50+ Request 355.csv'
 nhw_v1_path = 'resources/HABSHD/v5/HD 1 Non-Hispanic White 50+ Request 355.csv'
@@ -54,7 +56,7 @@ habshd.raw <- bind_rows(
 
 ```{r}
 #| label: wrangle
-
+#| eval: false
 habshd <- habshd.raw %>%
   mutate(
     abeta40 = ifelse(is.na(r3_qtx_plasma_abeta42), r5_qtx_plasma_abeta40, r3_qtx_plasma_abeta40), 
@@ -204,6 +206,7 @@ table_desc %>% kbl(caption = '', col.names = c("Variable", "Description"),
 +-------------------+--------------------------------+
 
 ```{r}
+#| eval: false
 habshd[which(habshd$adi_state_rank=="GQ"),] <- NA
 habshd[which(habshd$adi_state_rank=="PH"),] <- NA
 habshd[which(habshd$adi_state_rank=="Invalid Address"),] <- NA
@@ -339,13 +342,16 @@ imaging_genetics_table <- habshd %>% select(abeta40, abeta42,ptau181, total_tau,
                       fmt_markdown(columns = everything())
 
 gtsave(imaging_genetics_table,filename = file.path(SAVE_VISUALIZATIONS_PATH, "imaging_genetic_table.png")) 
-```
+
 ![Table1](~/Downloads/demographics_summary.png)
 
 
 ![Table2](~/Downloads/clinical_table1.png)
 ![Table3](~/Downloads/clinical_table2.png)
 ![Table4](~/Downloads/imaging_genetic_table.png)
+
+```
+
 
 ## Genotyping 
 
@@ -356,12 +362,14 @@ TBD
 Download the hapmap_3.3.hg38.vcf.gz file from the [Broad's google bucket](https://console.cloud.google.com/storage/browser/genomics-public-data/resources/broad/hg38/v0;tab=objects?prefix=&forceOnObjectsSortingFiltering=false)
 
 ```{bash}
+#| eval: false
 bcftools view -i 'AF > 0 && TYPE="snp" && N_ALT=1' resources/genetic_epi/resources_broad_hg38_v0_hapmap_3.3.hg38.vcf | \
 bcftools view -H > work/hapmap3_snps.txt
 ```
 
 
-```{r, eval=F}
+```{r}
+#| eval: false
 hm3.raw <- read_table("work/hapmap3_snps.txt", col_names = F)
 
 hm3 <- hm3.raw %>%
@@ -387,7 +395,8 @@ out %>%
 
 ```
 
-```{bash, eval=F}
+```{bash}
+#| eval: false
 plink \
   --bfile resources/HABSHD/genotypes/all \
   --keep-allele-order \

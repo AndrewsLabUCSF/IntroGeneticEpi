@@ -10,6 +10,7 @@ TBD
 ## Import 
 
 ```{r}
+#| eval: false
 fam <- read_table('work/habshd_gwas.fam', col_names = c('FID', 'IID'))
 habshd <- read_csv("work/habshd_pheno.csv") %>% distinct(med_id, .keep_all = T)
 pc <- pca <- read_delim('work/habshd.eigenvec', 
@@ -19,6 +20,7 @@ pc <- pca <- read_delim('work/habshd.eigenvec',
 
 ## Phenotype File 
 ```{r}
+#| eval: false
 pheno <- fam %>%
   left_join(select(habshd, med_id, cdr_sum), by = c('IID' = 'med_id')) 
 
@@ -29,6 +31,7 @@ pheno %>%
 ## Covariate File 
 
 ```{r}
+#| eval: false
 covar <- fam %>%
   left_join(select(habshd, med_id, age, id_gender), by = c('IID' = 'med_id')) %>%
   left_join(select(pc, IID, PC1, PC2, PC3, PC4), by = 'IID') 
@@ -41,7 +44,7 @@ covar %>%
 ## GWAS 
 
 ```{bash}
-
+#| eval: false
 plink \
   --bfile work/habshd_gwas \
   --pheno work/habshd_gwas.pheno \
@@ -54,6 +57,7 @@ plink \
 ## Manhattan Plot 
 
 ```{r}
+#| eval: false
 gwas.raw <- read_table('results/habshd_cdr_gwas.assoc.linear') %>%
   select(-X10)
 
