@@ -1,0 +1,1 @@
+scp sjfandrews@dt1.wynton.ucsf.edu:/wynton/group/andrews/data/habshd/intermediate/post-impute_filter/output/imputed_1kG_merged.bim ~/Downloads

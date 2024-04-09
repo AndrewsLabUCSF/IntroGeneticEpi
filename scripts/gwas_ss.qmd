@@ -58,6 +58,7 @@ reformatted <-
                                  ) %>%
   as_tibble()
 
+write_tsv(reformatted, 'work/Kunkle2019load.tsv.gz')
 ```
 
 
