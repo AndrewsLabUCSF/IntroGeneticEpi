@@ -1,4 +1,11 @@
-# Polygenic Risk Scores
+---
+output: html_document
+execute: 
+  freeze: auto
+editor_options: 
+  chunk_output_type: console
+---
+# Polygenic Risk Scores {.unnumbered}
 
 This is a book created from markdown and executable code.
 

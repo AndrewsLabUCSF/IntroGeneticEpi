@@ -1,4 +1,11 @@
-# Conda Env 
+---
+output: html_document
+execute: 
+  freeze: auto
+editor_options: 
+  chunk_output_type: console
+---
+# Conda Env {.unnumbered}
 
 ```{yaml}
 #| eval: false

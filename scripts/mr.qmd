@@ -1,5 +1,11 @@
-# Mendelian Randomization
+---
+output: html_document
+execute: 
+  freeze: auto
+editor_options: 
+  chunk_output_type: console
+---
 
-This is a book created from markdown and executable code.
+# Mendelian Randomization {.unnumbered}
 
-See @knuth84 for additional discussion of literate programming.
+TBD

@@ -1,5 +1,7 @@
 ---
 output: html_document
+execute: 
+  freeze: auto
 editor_options: 
   chunk_output_type: console
 ---
@@ -26,21 +28,25 @@ The Summary statistics consists of the following information for each SNP and it
 
 ```{bash}
 #| eval: false
+#| label: Download Summary Statistics
 curl https://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/GCST007001-GCST008000/GCST007511/Kunkle_etal_Stage1_results.txt > resources/Kunkle_etal_Stage1_results.txt
 ```
 
 ## MungeSumstats
 
-The MungeSumstats package is designed to facilitate the standardisation of GWAS summary statistics. 
+The MungeSumstats package is designed to facilitate the standardization of GWAS summary statistics. 
 
 
 ```{r}
+#| eval: false
+#| label: load packages
 library(tidyverse)
 
 ```
 
 ```{r}
 #| eval: false
+#| label: Munge Summary statistics
 load.raw <- read_table('resources/Kunkle_etal_Stage1_results.txt')
 
 load <- load.raw %>%
@@ -67,6 +73,66 @@ write_tsv(reformatted, 'work/Kunkle2019load.tsv.gz')
 
 ```{r}
 #| eval: false
+#| label: AD Manhattan Plot
+
+load.df_p <- reformatted %>%
+  filter(., P < 0.1) %>% 
+  filter(., P > 1e-50) %>% 
+  select(SNP, CHR, BP, P) 
+
+don <- load.df_p %>% 
+  
+  # Compute chromosome size
+  group_by(CHR) %>% 
+  summarise(chr_len=max(BP)) %>% 
+  
+  # Calculate cumulative position of each chromosome
+  mutate(tot=cumsum(chr_len)-chr_len) %>%
+  select(-chr_len) %>%
+  
+  # Add this info to the initial dataset
+  left_join(load.df_p, ., by=c("CHR"="CHR")) %>%
+  
+  # Add a cumulative position of each SNP
+  arrange(CHR, BP) %>%
+  mutate( BPcum=BP+tot) 
+
+# Prepare X axis
+axisdf <- don %>% group_by(CHR) %>% summarize(center=( max(BPcum) + min(BPcum) ) / 2 )
+
+# Make the plot
+load.p <- ggplot(don, aes(x=BPcum, y=-log10(P))) +
+    
+    # Show all points
+    geom_point( aes(color=as.factor(CHR)), size=0.5) +
+    scale_color_manual(values = rep(c("grey50", "steelblue"), 22 )) +
+    
+    # custom X axis:
+    scale_x_continuous( label = axisdf$CHR, breaks= axisdf$center ) +
+    scale_y_continuous(expand = c(0, 0) ) +     # remove space between plot area and x axis
+
+    # Add highlighted points
+    # geom_point(data=subset(don, is_highlight=="yes"), color="orange", size=2) +
+  
+    # Add label using ggrepel to avoid overlapping
+    # geom_label_repel( data=subset(don, is_annotate=="yes"), aes(label=SNP), size=2) +
+
+    # Custom the theme:
+    theme_bw() +
+    labs(title = "LOAD - Kunkle et al. Nature Genetics 2019") + 
+    theme( 
+      legend.position="none",
+      panel.border = element_blank(),
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank(), 
+      axis.title.x = element_blank()
+    )
+
+load.p <- ggman::ggman(load.df_p, snp = "SNP", bp = "BP", chrom = "CHR", pvalue = "P", relative.positions = TRUE) + 
+  labs(title = "LOAD - Kunkle et al. Nature Genetics 2019") + 
+  theme_classic()
+  
+ggsave("results/plots/kunkle2019load_manhattan_plot.png", height = 4, width = 6, units = 'in')  
 ```
 
 

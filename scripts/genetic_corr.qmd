@@ -5,5 +5,4 @@ execute:
 editor_options: 
   chunk_output_type: console
 ---
-
-# Summary Statistics {.unnumbered}
+# Genetic Correlations {.unnumbered}

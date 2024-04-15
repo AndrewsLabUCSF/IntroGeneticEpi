@@ -22,6 +22,8 @@ book:
         - scripts/gwas.qmd
         - scripts/gwas_ss.qmd
         - scripts/ancestry.qmd
+        - scripts/heritability.qmd
+        - scripts/genetic_corr.qmd
     - part: "Polygenic Risk Scores"
       chapters:
         - scripts/prs.qmd
