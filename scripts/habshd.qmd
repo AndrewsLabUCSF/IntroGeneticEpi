@@ -12,7 +12,8 @@ editor_options:
 #| eval: false
 library(tidyverse)
 setwd('~/gitcode/IntroGeneticEpi/')
-SAVE_VISUALIZATIONS_PATH <- "~/Downloads"
+SAVE_VISUALIZATIONS_PATH <- "results/figures"
+#| code-fold: true
 ```
 
 ```{r}
@@ -109,53 +110,53 @@ table_desc %>% kbl(caption = '', col.names = c("Variable", "Description"),
 ```
 
 ### Descriptive Table
-+-------------------+------------------------------+
-| **Variable**      | **Description**              | 
-+-------------------+------------------------------+
-|**Demographics**   |                              |
-+-------------------+------------------------------+
-| med_id            | Medical ID number\           |
-|                   | Not an MRN                   | 
-+-------------------+------------------------------+
-| age               | Age (yrs)                    |                          
-|                   |                              | 
-+-------------------+------------------------------+
-| id_gender         | 1:Female\                    |                        
-|                   | 0: Male                      |                        
-+-------------------+------------------------------+
-|interview_language | Language in which            | 
-|                   | interview was administered\  |
-|                   | 1:English 2:Spanish          |
-+-------------------+------------------------------+
-| adi_state_rank    | Area Deprivation Index\      |                        
-|                   | Levels: 1,2,..,10\           |
-|                   | 1: least disadvantaged       |
-|                   | 10: most disadvantaged       |
-+-------------------+------------------------------+
-| race              | Black, NHW,                  |
-|                   | Hispanic                     |                
-+-------------------+------------------------------+
-| id_education      | Years of                     |                        
-|                   | Education                    |
-+-------------------+------------------------------+
-|**Clinical**       |                              |
-+-------------------+------------------------------+
-| smoke_ever        | Ever smoked?                 |
-|                   | 0:No   1:Yes                 |
-+-------------------+------------------------------+
-| cdx_cog           | Cognitive Disorder\          |  
-|                   | 0: Cognitively Unimpaired\   |
-|                   | 1:Mild Cognitive Impairment\ |
-|                   | 2: Dementia                  |  
-+-------------------+------------------------------+
-| cdx_depression    | Depression                   |                    
-|                   | 0:No   1:Yes                 |
-+-------------------+------------------------------+
-| cdx_hypertension  | Hypertension\ 0:No\  1:Yes   |
-+-------------------+------------------------------+
-| cdx_diabetes      | Diabetes\ 0:No\  1:Yes       |
-+-------------------+------------------------------+
-| cdx_dyslipidemia. | High Cholesterol\ 0:No\ 1:Yes|
++-------------------+--------------------------------+
+| **Variable**      | **Description**                | 
++-------------------+--------------------------------+
+|**Demographics**   |                                |
++-------------------+--------------------------------+
+| med_id            | Medical ID number\             |
+|                   | Not an MRN                     | 
++-------------------+--------------------------------+
+| age               | Age (yrs)                      |                          
+|                   |                                | 
++-------------------+--------------------------------+
+| id_gender         | 1:Female\                      |                        
+|                   | 0: Male                        |                        
++-------------------+--------------------------------+
+|interview_language | Language in which              | 
+|                   | interview was administered\    |
+|                   | 1:English 2:Spanish            |
++-------------------+--------------------------------+
+| adi_state_rank    | Area Deprivation Index\        |                        
+|                   | Levels: 1,2,..,10\             |
+|                   | 1: least disadvantaged         |
+|                   | 10: most disadvantaged         |
++-------------------+--------------------------------+
+| race              | Black, NHW,                    |
+|                   | Hispanic                       |                
++-------------------+--------------------------------+
+| id_education      | Years of                       |                        
+|                   | Education                      |
++-------------------+--------------------------------+
+|**Clinical**       |                                |
++-------------------+--------------------------------+
+| smoke_ever        | Ever smoked?                   |
+|                   | 0:No   1:Yes                   |
++-------------------+--------------------------------+
+| cdx_cog           | Cognitive Disorder\            |  
+|                   | 0: Cognitively Unimpaired\     |
+|                   | 1:Mild Cognitive Impairment\   |
+|                   | 2: Dementia                    |  
++-------------------+--------------------------------+
+| cdx_depression    | Depression                     |                    
+|                   | 0:No   1:Yes                   |
++-------------------+--------------------------------+
+| cdx_hypertension  | Hypertension\ 0:No\  1:Yes     |
++-------------------+--------------------------------+
+| cdx_diabetes      | Diabetes\ 0:No\  1:Yes         |
++-------------------+--------------------------------+
+| cdx_dyslipidemia. | High Cholesterol\ 0:No\ 1:Yes  |
 +-------------------+--------------------------------+
 | cdr_sum           |Clinical Dementia Rating (CDR)\ |
 |                   | Sum of Boxes                   |
@@ -183,7 +184,7 @@ table_desc %>% kbl(caption = '', col.names = c("Variable", "Description"),
 +-------------------+--------------------------------+
 | bw_hba1c          | Hemoglobin  A1C% of total Hgb  |
 +-------------------+--------------------------------+
-| **Imaging**       |                                |
+| **Biomarkers**    |                                |
 +-------------------+--------------------------------+
 | abeta40           | $A\beta_{40}$                  |
 +-------------------+--------------------------------+
@@ -194,7 +195,7 @@ table_desc %>% kbl(caption = '', col.names = c("Variable", "Description"),
 |                   | Avgerage LLOD: 0.016 \         |
 |                   | Average HLOD:349               |
 +-------------------+--------------------------------+
-| total_tau         | Total Tau
+| total_tau         | Total Tau                      |
 +-------------------+--------------------------------+
 | nfl               | Neurofilament Light (pg/mL)\   |
 |                   |  Average CV: 0.038 \           |
@@ -206,6 +207,11 @@ table_desc %>% kbl(caption = '', col.names = c("Variable", "Description"),
 | apoe4_snp         | APOE Genotype\                 |
 |                   | E2E3, E2E4, E3E3, E3E4, E4E4   |
 +-------------------+--------------------------------+
+
+
+
+
+
 
 ```{r}
 #| eval: false
@@ -344,16 +350,12 @@ imaging_genetics_table <- habshd %>% select(abeta40, abeta42,ptau181, total_tau,
                       fmt_markdown(columns = everything())
 
 gtsave(imaging_genetics_table,filename = file.path(SAVE_VISUALIZATIONS_PATH, "imaging_genetic_table.png")) 
-
-![Table1](~/Downloads/demographics_summary.png)
-
-
-![Table2](~/Downloads/clinical_table1.png)
-![Table3](~/Downloads/clinical_table2.png)
-![Table4](~/Downloads/imaging_genetic_table.png)
-
 ```
 
+![Table1](~/results/figures/demographics_summary.png)
+![Table2](~/results/figures/clinical_table1.png)
+![Table3](~/results/figures/clinical_table2.png)
+![Table4](~/results/figures/imaging_genetic_table.png)
 
 ## Genotyping 
 
