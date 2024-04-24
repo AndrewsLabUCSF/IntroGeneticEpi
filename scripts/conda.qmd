@@ -7,6 +7,18 @@ editor_options:
 ---
 # Conda Env {.unnumbered}
 
+Clone the [Introduction to Genetic Epi repo](https://github.com/AndrewsLabUCSF/IntroGeneticEpi)
+
+
+```{bash}
+#| eval: false
+git clone https://github.com/AndrewsLabUCSF/IntroGeneticEpi.git`
+```
+
+We will use a conda environment to run our projects. If you dont already have conda installed, install [miniconda](https://docs.anaconda.com/free/miniconda/miniconda-install/install) or [micromamba](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html). 
+
+The following yaml file defines what software we will install in the conda environment named genetic_epi
+
 ```{yaml}
 #| eval: false
 name: genetic_epi
@@ -17,8 +29,17 @@ dependencies:
   - plink=1.90b6.21
 ```
 
+Run the following code to install the conda environment
+```{bash}
+#| eval: false
+conda env create -f envs/genetic_epi.yml
+```
+
+## PLINK 
+
+[Install plink](https://www.cog-genomics.org/plink/)
 
 ```{bash}
 #| eval: false
-conda env create -f env/genetic_epi.yml
+sudo cp path/to/plink /usr/local/bin/` 
 ```

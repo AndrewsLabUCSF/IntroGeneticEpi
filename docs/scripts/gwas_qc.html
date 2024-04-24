@@ -333,6 +333,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>95% was used as the SNP call rate threshhold (usually ≥ 95% or higher), and 1% was used as the MAF threshold (usually ≥ 1% or higher). <br></p>
 <p>Filtering SNPs on MAF and call rate can be done in <code>PLINK 1.9</code> by typing the following (or similar) at the shell prompt. This uses 95% and 1% for the call-rate and MAF, respectively:</p>
 <div class="cell">
+<details>
+<summary>Import Packges</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate frequency reports</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">plink</span> <span class="dt">\</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">--bfile</span> work/habshd_rsid <span class="dt">\</span></span>
@@ -352,6 +354,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">--keep-allele-order</span> <span class="dt">\</span></span>
 <span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">--geno</span> 0.05 <span class="at">--maf</span> 0.01 <span class="dt">\</span></span>
 <span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">--make-bed</span> <span class="at">--out</span> work/habshd_snpqc  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="do">## ==== SNP Level Filtering ====</span></span>

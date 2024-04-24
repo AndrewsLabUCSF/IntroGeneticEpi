@@ -217,7 +217,13 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#plink" id="toc-plink" class="nav-link active" data-scroll-target="#plink">PLINK</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -239,6 +245,11 @@ ul.task-list li input[type="checkbox"] {
 
 </header>
 
+<p>Clone the <a href="https://github.com/AndrewsLabUCSF/IntroGeneticEpi">Introduction to Genetic Epi repo</a></p>
+<pre class="{bash}"><code>#| eval: false
+git clone https://github.com/AndrewsLabUCSF/IntroGeneticEpi.git`</code></pre>
+<p>We will use a conda environment to run our projects. If you dont already have conda installed, install <a href="https://docs.anaconda.com/free/miniconda/miniconda-install/install">miniconda</a> or <a href="https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html">micromamba</a>.</p>
+<p>The following yaml file defines what software we will install in the conda environment named genetic_epi</p>
 <pre class="{yaml}"><code>#| eval: false
 name: genetic_epi
 channels:
@@ -246,10 +257,17 @@ channels:
   - bioconda
 dependencies:
   - plink=1.90b6.21</code></pre>
+<p>Run the following code to install the conda environment</p>
 <pre class="{bash}"><code>#| eval: false
-conda env create -f env/genetic_epi.yml</code></pre>
+conda env create -f envs/genetic_epi.yml</code></pre>
+<section id="plink" class="level2">
+<h2 class="anchored" data-anchor-id="plink">PLINK</h2>
+<p><a href="https://www.cog-genomics.org/plink/">Install plink</a></p>
+<pre class="{bash}"><code>#| eval: false
+sudo cp path/to/plink /usr/local/bin/` </code></pre>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

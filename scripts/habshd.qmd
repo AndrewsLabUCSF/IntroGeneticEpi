@@ -7,18 +7,24 @@ editor_options:
 ---
 # HABS-HD {.unnumbered}
 
+We will be using [Health and Aging Brain Study-Health Disparities (HABS-HD)](https://pubmed.ncbi.nlm.nih.gov/34189247/) as an example data for conducting genome-wide assocation studies. Phenotypic and genetic data will be shared via Box. 
+
 ## Phenotypes
 ```{r}
 #| eval: false
+#| label: packages
+#| code-summary: Import Packges
+#| code-fold: TRUE
 library(tidyverse)
 setwd('~/gitcode/IntroGeneticEpi/')
 SAVE_VISUALIZATIONS_PATH <- "results/figures"
-#| code-fold: true
 ```
 
 ```{r}
 #| label: import
 #| eval: false
+#| code-summary: Import Data 
+#| code-fold: TRUE
 aa_v1_path = 'resources/HABSHD/v5/HD 1 African American 50+ Request 355.csv'
 ma_v1_path = 'resources/HABSHD/v5/HD 1 Mexican American 50+ Request 355.csv'
 nhw_v1_path = 'resources/HABSHD/v5/HD 1 Non-Hispanic White 50+ Request 355.csv'
@@ -60,6 +66,8 @@ habshd.raw <- bind_rows(
 ```{r}
 #| label: wrangle
 #| eval: false
+#| code-summary: Wrangle Data
+#| code-fold: TRUE
 habshd <- habshd.raw %>%
   mutate(
     abeta40 = ifelse(is.na(r3_qtx_plasma_abeta42), r5_qtx_plasma_abeta40, r3_qtx_plasma_abeta40), 
@@ -79,6 +87,13 @@ habshd <- habshd.raw %>%
          )
 
 write_csv(habshd, "work/habshd_pheno.csv")
+```
+
+```{r}
+#| label: descriptives
+#| eval: false
+#| code-summary: Variable Descriptions
+#| code-fold: true
 
 #descriptive table
 description <- c("Medical ID","","1 = Female <br> 0 = Male",
@@ -215,6 +230,8 @@ table_desc %>% kbl(caption = '', col.names = c("Variable", "Description"),
 
 ```{r}
 #| eval: false
+#| code-summary: Descriptive Statistics - tables
+#| code-fold: true
 habshd[which(habshd$adi_state_rank=="GQ"),] <- NA
 habshd[which(habshd$adi_state_rank=="PH"),] <- NA
 habshd[which(habshd$adi_state_rank=="Invalid Address"),] <- NA
@@ -359,7 +376,7 @@ gtsave(imaging_genetics_table,filename = file.path(SAVE_VISUALIZATIONS_PATH, "im
 
 ## Genotyping 
 
-TBD
+Samples in HABS-HD were genotyped on the Illumina GSA array. These files have undergone basic variant and sample QC and then imputed on using the [TOPMed imputation server](https://imputation.biodatacatalyst.nhlbi.nih.gov/#!pages/home). I have then filtered the imputed files to only HapMap III SNPS to make  
 
 ### HapMap III
 

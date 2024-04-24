@@ -23,6 +23,10 @@ Filtering SNPs on MAF and call rate can be done in `PLINK 1.9` by typing the fol
 
 ```{bash}
 #| eval: false
+#| label: packages
+#| code-summary: Import Packges
+#| code-fold: TRUE
+
 # Generate frequency reports
 plink \
     --bfile work/habshd_rsid \

@@ -13,6 +13,17 @@ TBD
 
 ```{r}
 #| eval: false
+#| label: packages
+#| code-summary: Import Packages
+#| code-fold: True
+library(tidyverse)
+```
+
+```{r}
+#| eval: false
+#| label: data_import
+#| code-summary: Import Data
+#| code-fold: True
 fam <- read_table('work/habshd_gwas.fam', col_names = c('FID', 'IID'))
 habshd <- read_csv("work/habshd_pheno.csv") %>% distinct(med_id, .keep_all = T)
 pc <- pca <- read_delim('work/habshd.eigenvec', 
@@ -23,6 +34,9 @@ pc <- pca <- read_delim('work/habshd.eigenvec',
 ## Phenotype File 
 ```{r}
 #| eval: false
+#| label: pheno_file
+#| code-summary: Phenotype File
+#| code-fold: True
 pheno <- fam %>%
   left_join(select(habshd, med_id, cdr_sum), by = c('IID' = 'med_id')) 
 
@@ -34,6 +48,9 @@ pheno %>%
 
 ```{r}
 #| eval: false
+#| label: covariate_file
+#| code-summary: Covariate File
+#| code-fold: True
 covar <- fam %>%
   left_join(select(habshd, med_id, age, id_gender), by = c('IID' = 'med_id')) %>%
   left_join(select(pc, IID, PC1, PC2, PC3, PC4), by = 'IID') 
@@ -47,6 +64,9 @@ covar %>%
 
 ```{bash}
 #| eval: false
+#| label: plinK_gwas
+#| code-summary: PLINK GWAS
+#| code-fold: show
 plink \
   --bfile work/habshd_gwas \
   --pheno work/habshd_gwas.pheno \
@@ -60,6 +80,9 @@ plink \
 
 ```{r}
 #| eval: false
+#| label: manhattan_plot
+#| code-summary: Manhattan Plot
+#| code-fold: true
 gwas.raw <- read_table('results/habshd_cdr_gwas.assoc.linear') %>%
   select(-X10)
 
