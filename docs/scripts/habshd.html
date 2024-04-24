@@ -176,7 +176,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/conda.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Conda Env</span></a>
+  <a href="../scripts/conda.html" class="sidebar-item-text sidebar-link">Conda Env</a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -186,7 +186,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/summarystats.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">summarystats.html</span></a>
+  <a href="../scripts/summarystats.html" class="sidebar-item-text sidebar-link">Summary Statistics</a>
   </div>
 </li>
       </ul>
@@ -219,6 +219,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <a href="../scripts/ancestry.html" class="sidebar-item-text sidebar-link">Genetic Ancestry</a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../scripts/heritability.html" class="sidebar-item-text sidebar-link">Heritability</a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../scripts/genetic_corr.html" class="sidebar-item-text sidebar-link">Genetic Correlations</a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -231,7 +241,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/prs.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Polygenic Risk Scores</span></a>
+  <a href="../scripts/prs.html" class="sidebar-item-text sidebar-link">Polygenic Risk Scores</a>
   </div>
 </li>
       </ul>
@@ -246,7 +256,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/mr.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Mendelian Randomization</span></a>
+  <a href="../scripts/mr.html" class="sidebar-item-text sidebar-link">Mendelian Randomization</a>
   </div>
 </li>
       </ul>
@@ -311,7 +321,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(<span class="st">'~/gitcode/IntroGeneticEpi/'</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>SAVE_VISUALIZATIONS_PATH <span class="ot">&lt;-</span> <span class="st">"~/Downloads"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>SAVE_VISUALIZATIONS_PATH <span class="ot">&lt;-</span> <span class="st">"results/figures"</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>aa_v1_path <span class="ot">=</span> <span class="st">'resources/HABSHD/v5/HD 1 African American 50+ Request 355.csv'</span></span>
@@ -405,69 +416,57 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <table class="table">
 <colgroup>
 <col style="width: 27%">
-<col style="width: 43%">
-<col style="width: 2%">
+<col style="width: 45%">
 </colgroup>
 <tbody>
 <tr class="odd">
 <td><strong>Variable</strong></td>
 <td><strong>Description</strong></td>
-<td></td>
 </tr>
 <tr class="even">
 <td><strong>Demographics</strong></td>
-<td></td>
 <td></td>
 </tr>
 <tr class="odd">
 <td>med_id</td>
 <td>Medical ID number<br>
 Not an MRN</td>
-<td></td>
 </tr>
 <tr class="even">
 <td>age</td>
 <td>Age (yrs)</td>
-<td></td>
 </tr>
 <tr class="odd">
 <td>id_gender</td>
 <td>1:Female<br>
 0: Male</td>
-<td></td>
 </tr>
 <tr class="even">
 <td>interview_language</td>
 <td>Language in which interview was administered<br>
 1:English 2:Spanish</td>
-<td></td>
 </tr>
 <tr class="odd">
 <td>adi_state_rank</td>
 <td>Area Deprivation Index<br>
 Levels: 1,2,..,10<br>
 1: least disadvantaged 10: most disadvantaged</td>
-<td></td>
 </tr>
 <tr class="even">
 <td>race</td>
 <td>Black, NHW, Hispanic</td>
-<td></td>
 </tr>
 <tr class="odd">
 <td>id_education</td>
 <td>Years of Education</td>
-<td></td>
 </tr>
 <tr class="even">
 <td><strong>Clinical</strong></td>
-<td></td>
 <td></td>
 </tr>
 <tr class="odd">
 <td>smoke_ever</td>
 <td>Ever smoked? 0:No 1:Yes</td>
-<td></td>
 </tr>
 <tr class="even">
 <td>cdx_cog</td>
@@ -475,113 +474,109 @@ Levels: 1,2,..,10<br>
 0: Cognitively Unimpaired<br>
 1:Mild Cognitive Impairment<br>
 2: Dementia</td>
-<td></td>
 </tr>
 <tr class="odd">
 <td>cdx_depression</td>
 <td>Depression 0:No 1:Yes</td>
-<td></td>
 </tr>
 <tr class="even">
 <td>cdx_hypertension</td>
 <td>Hypertension&nbsp;0:No&nbsp; 1:Yes</td>
-<td></td>
 </tr>
 <tr class="odd">
 <td>cdx_diabetes</td>
 <td>Diabetes&nbsp;0:No&nbsp; 1:Yes</td>
-<td></td>
 </tr>
 <tr class="even">
 <td>cdx_dyslipidemia.</td>
-<td colspan="2">High Cholesterol&nbsp;0:No&nbsp;1:Yes|</td>
+<td>High Cholesterol&nbsp;0:No&nbsp;1:Yes</td>
 </tr>
 <tr class="odd">
 <td>cdr_sum</td>
-<td colspan="2">Clinical Dementia Rating (CDR)<br>
+<td>Clinical Dementia Rating (CDR)<br>
 Sum of Boxes</td>
 </tr>
 <tr class="even">
 <td>gds_total</td>
-<td colspan="2">Geriatric Depression Scale (GDS) sum of GDS 1 to GDS 30</td>
+<td>Geriatric Depression Scale (GDS) sum of GDS 1 to GDS 30</td>
 </tr>
 <tr class="odd">
 <td>om_bp1_dia</td>
-<td colspan="2">Diastolic BP</td>
+<td>Diastolic BP</td>
 </tr>
 <tr class="even">
 <td>om_bp1_sys</td>
-<td colspan="2">Systolic BP</td>
+<td>Systolic BP</td>
 </tr>
 <tr class="odd">
 <td>om_height</td>
-<td colspan="2">Height (in)</td>
+<td>Height (in)</td>
 </tr>
 <tr class="even">
 <td>om_weight</td>
-<td colspan="2">Weight (lbs)</td>
+<td>Weight (lbs)</td>
 </tr>
 <tr class="odd">
 <td>om_bmi</td>
-<td colspan="2">Body Mass Index (BMI)</td>
+<td>Body Mass Index (BMI)</td>
 </tr>
 <tr class="even">
 <td>om_ab_circumference</td>
-<td colspan="2">Abdominal Circumference (in)</td>
+<td>Abdominal Circumference (in)</td>
 </tr>
 <tr class="odd">
 <td>bw_chol_total</td>
-<td colspan="2">Total Cholesterol (mg/dL)</td>
+<td>Total Cholesterol (mg/dL)</td>
 </tr>
 <tr class="even">
 <td>bw_ld_lchol</td>
-<td colspan="2">LDL Cholesterol (mg/dL) (bad)</td>
+<td>LDL Cholesterol (mg/dL) (bad)</td>
 </tr>
 <tr class="odd">
 <td>bw_hdl_chol</td>
-<td colspan="2">HDL Cholesterol (mg/dL) (good)</td>
+<td>HDL Cholesterol (mg/dL) (good)</td>
 </tr>
 <tr class="even">
 <td>bw_hba1c</td>
-<td colspan="2">Hemoglobin A1C% of total Hgb</td>
+<td>Hemoglobin A1C% of total Hgb</td>
 </tr>
 <tr class="odd">
-<td><strong>Imaging</strong></td>
-<td colspan="2"></td>
+<td><strong>Biomarkers</strong></td>
+<td></td>
 </tr>
 <tr class="even">
 <td>abeta40</td>
-<td colspan="2"><span class="math inline">\(A\beta_{40}\)</span></td>
+<td><span class="math inline">\(A\beta_{40}\)</span></td>
 </tr>
 <tr class="odd">
 <td>abeta42</td>
-<td colspan="2"><span class="math inline">\(A\beta_{42}\)</span></td>
+<td><span class="math inline">\(A\beta_{42}\)</span></td>
 </tr>
 <tr class="even">
 <td>ptau181</td>
-<td colspan="2">Phospho-Tau (pg/mL)<br>
+<td>Phospho-Tau (pg/mL)<br>
 Average CV: 0.07065<br>
 Avgerage LLOD: 0.016<br>
 Average HLOD:349</td>
 </tr>
 <tr class="odd">
 <td>total_tau</td>
-<td colspan="2">Total Tau</td>
+<td>Total Tau</td>
 </tr>
 <tr class="even">
 <td>nfl</td>
-<td colspan="2">Neurofilament Light (pg/mL)<br>
+<td>Neurofilament Light (pg/mL)<br>
 Average CV: 0.038<br>
 Avgerage LLOD: 0.038<br>
 Average HLOD:1800</td>
 </tr>
 <tr class="odd">
 <td><strong>Genetics </strong></td>
-<td colspan="2"></td>
+<td></td>
 </tr>
 <tr class="even">
 <td>apoe4_snp</td>
-<td colspan="2">APOE Genotype<br>
+<td>APOE Genotype<br>
 E2E3, E2E4, E3E3, E3E4, E4E4</td>
 </tr>
 </tbody>
@@ -721,15 +716,9 @@ E2E3, E2E4, E3E3, E3E4, E4E4</td>
 <span id="cb4-132"><a href="#cb4-132" aria-hidden="true" tabindex="-1"></a>                                <span class="at">container.height =</span><span class="dv">700</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb4-133"><a href="#cb4-133" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">fmt_markdown</span>(<span class="at">columns =</span> <span class="fu">everything</span>())</span>
 <span id="cb4-134"><a href="#cb4-134" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-135"><a href="#cb4-135" aria-hidden="true" tabindex="-1"></a><span class="fu">gtsave</span>(imaging_genetics_table,<span class="at">filename =</span> <span class="fu">file.path</span>(SAVE_VISUALIZATIONS_PATH, <span class="st">"imaging_genetic_table.png"</span>)) </span>
-<span id="cb4-136"><a href="#cb4-136" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-137"><a href="#cb4-137" aria-hidden="true" tabindex="-1"></a><span class="sc">!</span>[Table1](<span class="sc">~</span><span class="er">/</span>Downloads<span class="sc">/</span>demographics_summary.png)</span>
-<span id="cb4-138"><a href="#cb4-138" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-139"><a href="#cb4-139" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-140"><a href="#cb4-140" aria-hidden="true" tabindex="-1"></a><span class="sc">!</span>[Table2](<span class="sc">~</span><span class="er">/</span>Downloads<span class="sc">/</span>clinical_table1.png)</span>
-<span id="cb4-141"><a href="#cb4-141" aria-hidden="true" tabindex="-1"></a><span class="sc">!</span>[Table3](<span class="sc">~</span><span class="er">/</span>Downloads<span class="sc">/</span>clinical_table2.png)</span>
-<span id="cb4-142"><a href="#cb4-142" aria-hidden="true" tabindex="-1"></a><span class="sc">!</span>[Table4](<span class="sc">~</span><span class="er">/</span>Downloads<span class="sc">/</span>imaging_genetic_table.png)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-135"><a href="#cb4-135" aria-hidden="true" tabindex="-1"></a><span class="fu">gtsave</span>(imaging_genetics_table,<span class="at">filename =</span> <span class="fu">file.path</span>(SAVE_VISUALIZATIONS_PATH, <span class="st">"imaging_genetic_table.png"</span>)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p><img src="../results/figures/demographics_summary.png" class="img-fluid" alt="Table1"> <img src="../results/figures/clinical_table1.png" class="img-fluid" alt="Table2"> <img src="../results/figures/clinical_table2.png" class="img-fluid" alt="Table3"> <img src="../results/figures/imaging_genetic_table.png" class="img-fluid" alt="Table4"></p>
 </section>
 </section>
 <section id="genotyping" class="level2">
@@ -923,12 +912,12 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
       <a href="../scripts/conda.html" class="pagination-link">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Conda Env</span></span>
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Conda Env</span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
       <a href="../scripts/summarystats.html" class="pagination-link">
-        <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">summarystats.html</span></span> <i class="bi bi-arrow-right-short"></i>
+        <span class="nav-page-text">Summary Statistics</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

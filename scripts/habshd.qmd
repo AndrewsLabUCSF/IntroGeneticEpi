@@ -352,10 +352,10 @@ imaging_genetics_table <- habshd %>% select(abeta40, abeta42,ptau181, total_tau,
 gtsave(imaging_genetics_table,filename = file.path(SAVE_VISUALIZATIONS_PATH, "imaging_genetic_table.png")) 
 ```
 
-![Table1](~/results/figures/demographics_summary.png)
-![Table2](~/results/figures/clinical_table1.png)
-![Table3](~/results/figures/clinical_table2.png)
-![Table4](~/results/figures/imaging_genetic_table.png)
+![Table1](../results/figures/demographics_summary.png)
+![Table2](../results/figures/clinical_table1.png)
+![Table3](../results/figures/clinical_table2.png)
+![Table4](../results/figures/imaging_genetic_table.png)
 
 ## Genotyping 
 

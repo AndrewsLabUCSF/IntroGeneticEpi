@@ -203,7 +203,7 @@ awk 'FNR==1 && NR==1 {print; next} FNR>1 {print}' work/HABLE_GSA_20220602.sexche
 ```{r}
 #| eval: false
 ## ---- Read in Data ----##
-sexcheck.raw <- read_table2('work/habshd_sexcheck.txt')
+sexcheck.raw <- read_table('work/habshd_sexcheck.txt')
 
 ##  recode sex varibles
 sexcheck <- sexcheck.raw %>%
@@ -419,15 +419,17 @@ The following histogram (Fig. \@ref(fig:kinplot)) shows the distribution of prop
 
 ```{r}
 #| eval: false
-ggplot(relatedness, aes(x = PI_HAT)) +
+ggplot(relatedness.raw, aes(x = PI_HAT)) +
   geom_histogram(binwidth = 0.01, fill = "#377EB8") +
   scale_y_continuous(trans = 'log10', breaks = scales::trans_breaks("log10", function(x) round(10^x, 3))) + 
-  coord_cartesian(xlim = c(min(relatedness$PI_HAT) - 0.05, 1)) +
+  coord_cartesian(xlim = c(min(relatedness.raw$PI_HAT) - 0.05, 1)) +
   annotation_logticks() + 
   theme_bw() + 
   labs(x = "IBD Sharing (pi-hat in PLINK)") +
   geom_vline(xintercept = pi_hat_thres,
              colour = "red", linetype = 2)
+
+ggsave("results/plots/ibd.png", width = 4, height = 4, units = 'in')
 
 ```
 
@@ -439,6 +441,8 @@ ggplot(ibdcoeff, aes(x = Z0, y = Z1, color = relationship)) +
   geom_point() + 
   labs(x = 'P(IBD=0)', y = "P(IBD=0)") + 
   theme_bw()
+
+ggsave("results/plots/relatedness.png", width = 6, height = 4, units = 'in')
 
 ```
 
@@ -493,17 +497,21 @@ PC.inc <-  findInterval(0.95, cumsum(eigenval$PVE)) + 1
 ## ---- Plot scree plot of proportion of varaince explained by Principal components ---- ##
 p1 <- ggplot(data = eigenval, aes(x = PC, y = PVE, group = factor(1))) +
   geom_point(colour = '#377EB8') + geom_path(colour = '#377EB8') +
+  scale_x_continuous(breaks = c(1:10)) + 
   labs(x = 'Principal Components') +
   theme_bw() + coord_cartesian(ylim = c(0,1), default = T)
 
 
 p2 <- ggplot(data = eigenval, aes(x=PC, y=cumsum(PVE), group = factor(1))) +
   geom_point(colour = '#377EB8') + geom_path(colour = '#377EB8') +
+  scale_x_continuous(breaks = c(1:10)) + 
   labs(x = 'Principal Components', y = 'cumulative PVE') +
   theme_bw() + coord_cartesian(ylim = c(0,1), default = T) +
   geom_hline(yintercept = 0.95, colour = '#E41A1C', linetype = 2)
 
-gridExtra::grid.arrange(p1, p2, ncol = 2)
+p3 <- gridExtra::grid.arrange(p1, p2, ncol = 2)
+
+ggsave("results/plots/screeplot.png", plot = p3, width = 9, height = 4, units = 'in')
 ```
 
 
@@ -515,7 +523,10 @@ The following plots show the population structure of xxx based on the first two 
 ##  Plot Superpopulations, PC1 + PC2
 ggplot(pca, aes(x = PC2, y = PC1, color = race)) +
   geom_point() +
+  scale_color_brewer(palette = "Set1") + 
   theme_bw() + theme(legend.position = 'right')
+
+ggsave("results/plots/pca.png", width = 6, height = 4, units = 'in')
 ```
 
 

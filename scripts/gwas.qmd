@@ -63,8 +63,12 @@ plink \
 gwas.raw <- read_table('results/habshd_cdr_gwas.assoc.linear') %>%
   select(-X10)
 
-ggman::ggman(gwas.raw, snp = "SNP", bp = "BP", chrom = "CHR", pvalue = "P", relative.positions = TRUE) + 
-  theme_bw()
+gwas.raw %>% arrange(P)
+
+cdr_gwas.p <- ggman::ggman(gwas.raw, snp = "SNP", bp = "BP", chrom = "CHR", pvalue = "P", relative.positions = TRUE) + 
+  theme_classic()
+
+ggsave("results/plots/cdr_gwas.png", plot = cdr_gwas.p, width = 9, height = 4, units = 'in')
 ```
 
 
