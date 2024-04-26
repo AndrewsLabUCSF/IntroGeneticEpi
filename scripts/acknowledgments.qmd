@@ -1,0 +1,3 @@
+# Acknowledgments {.unnumbered}
+
+The code used to conduct the genotyping QC and ancestry assignments was developed by Brian Fulton-Howard, PhD for the QAIC workflow. 

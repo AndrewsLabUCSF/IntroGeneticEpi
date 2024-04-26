@@ -32,6 +32,7 @@ book:
         - scripts/mr.qmd
   appendices:
     - scripts/references.qmd
+    - scripts/acknowledgments.qmd
 
 bibliography: references.bib
 csl: american-medical-association-no-url.csl

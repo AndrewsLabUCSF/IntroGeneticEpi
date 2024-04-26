@@ -10,8 +10,20 @@ editor_options:
 Genetic ancestry plays a pivotal role in genome-wide association studies (GWAS), providing insights into the population-specific genetic variations that may contribute to disease phenotypes. Accurate assessment of ancestry allows for the control of population stratification, which can confound results if not properly accounted for. Principal Component Analysis (PCA) is commonly used to visualize and correct for ancestry-related differences by identifying axes of genetic variation. Additionally, understanding admixture improves our interpretation of genetic data, enabling more precise localization of disease-associated variants in diverse populations.
 
 ## Prinicpal Component Analysis 
-
+### PLINK PCA
 PLINK enables us to conduct Principal Component Analysis (PCA) on genetic data. In this case, we have merged the HABS-HD dataset with the 1000 Genomes (1KG) dataset to initially derive principal components from the 1KG, which are then used to project the genetic data of the HABS-HD dataset onto. This will generate two files `work/imputed_1kG_merged.eigenvec` - the eigenvectors - and `work/imputed_1kG_merged.eigenval` the PCs. 
+
+To run the following PLINK command you will need the following files. 
+
+- `resources/genetic_epi/imputed_1kG_merged.bim`
+- `resources/genetic_epi/imputed_1kG_merged.bed`
+- `resources/genetic_epi/imputed_1kG_merged_fixed.fam`
+- `resources/genetic_epi/1kG_pops.txt`
+- `resources/genetic_epi/1kG_pops_unique.txt`
+
+ You can simplfy this by softlinking the Box `genetic_epi` directory into the resources directory of the IntroGeneticEpi git repository. 
+
+ `ln -s ~/Box-Box/AndrewsLab/data/genetic_epi ~/gitcode/IntroGeneticEpi/resources`
 
 ```{bash}
 #| eval: false
@@ -28,6 +40,8 @@ plink \
     --pca-clusters resources/genetic_epi/1kG_pops_unique.txt \
     --out work/imputed_1kG_merged
 ```
+
+### Cluster Assignment
 
 To categorize HABS-HD samples into the closest 1KG superpopulation, we calculate the geometric median for each cluster, assess the Euclidean distance from each sample to these medians, and assign samples to the nearest cluster accordingly.
 
@@ -48,7 +62,7 @@ suppressPackageStartupMessages(library(tidyr))
 library(stringr)
 library(tibble)
 suppressPackageStartupMessages(library(purrr))
-library(ggplot)
+library(ggplot2)
 
 # Get geometric median
 ## rdocumentation.org/packages/bigutilsr/versions/0.3.3/topics/geometric_median
@@ -96,12 +110,8 @@ vec <- 'work/imputed_1kG_merged.eigenvec'
 val <- 'work/imputed_1kG_merged.eigenval'
 base <- 'resources/genetic_epi/1kG_pops.txt'
 target <- 'work/habshd_sampleQC.fam'
-# output <- snakemake@output[["excl"]]
-# rmd <- snakemake@output[["rmd"]]
 sample <- 'HABS-HD'
 population <- 'all'
-# extraref <- snakemake@params[["extraref"]]
-# sdev <- snakemake@params[["sd"]]
 pcs_out_path <- 'work/habs_pca.tsv'
 tg_pops_file <- 'resources/genetic_epi/tg_subpops.tsv'
 
@@ -154,19 +164,6 @@ message("Processing data")
 tg_pops <- read_tsv(tg_pops_file, col_types = "cccc")
 populations <- tg_pops %>% select(pop, spop) %>% deframe %>% as.list
 superpops <- unlist(populations) %>% unique()
-
-extra_pops <- base_pops_raw[
-    !(base_pops_raw$Population %in% names(populations)), ] %>%
-  distinct(Population) %>%
-  pull(Population)
-
-if (length(extra_pops) == 1 && extraref == extra_pops) {
-  populations[extraref] <- population
-} else if (length(extra_pops) == 0 && extraref != "none") {
-  stop("Extra population missing from reference!")
-} else if (length(extra_pops) > 1) {
-  stop("Non-1kG population codes are not yet implemented. Go bug Brian.")
-}
 
 # Deal with invalid cohort names
 
@@ -255,6 +252,7 @@ write_tsv(pca, pcs_out_path)
 
 ```
 
+### Visualization 
 Now we can visualize the PCA to see how HABS-HD clusters with 1KG
 
 ```{r}
@@ -283,9 +281,11 @@ ga_pc3 <- ggplot() +
   scale_color_manual(values = color_vector) + 
   theme_bw()
 
-cowplot::plot_grid(
-  ga_pc1, ga_pc3, 
+habshd_ga.p <- cowplot::plot_grid(
+  ga_pc1, ga_pc3
 )
+
+ggsave("results/plots/habs_hd_ga.png", plot = habshd_ga.p, units = "in", width = 9, height = 4)
 
 ```
 
@@ -316,9 +316,24 @@ habshd_race <- ggplot(pca_pheno, aes(x = PC1, y = PC2, color = race)) +
   theme_bw() + 
   labs(title = "Race")
 
-cowplot::plot_grid(
+habs_hd_race_ga.p <- cowplot::plot_grid(
   habshd_ga, habshd_race
 )
+
+
+ggsave("results/plots/habs_hd_race_ga.png", plot = habs_hd_race_ga.p, units = "in", width = 9, height = 4)
+
+```
+
+
+```{r}
+#| eval: false
+#| echo: false
+#| label: GA Descriptives
+
+pca_pheno %>% count(superpop_infered)
+pca_pheno %>% count(superpop_infered, race) %>%
+  pivot_wider(names_from = race, values_from = n)
 
 ```
 
@@ -560,7 +575,6 @@ out_admix <- tbl_admix_inf |>
 
 out_admix |>
   arrange(desc(partition), admixture_super_pop_max) |>
-  fix_famfile() |>
   select(any_of(c("FID", "IID", "ID")), partition, admixture_cluster_max,
          admixture_super_pop_max, max_spop_prop, everything()) |>
   select(-`Maximum Cluster`) |>
@@ -569,6 +583,8 @@ out_admix |>
 
 
 ```
+
+### Visualization
 
 And now we can visualize the global ancestry. 
 
@@ -583,7 +599,7 @@ tbl_use <-  out_admix %>%
   pivot_longer(all_of(c('AFR', 'AMR', 'EAS', 'EUR', 'OCE', 'SAS')), names_to = "Cluster", values_to = "prop" ) |>
   mutate(spop = ifelse(genetic_region == "CSA", "SAS", genetic_region)) 
 
-ggplot(tbl_use, aes(x = ID, y = prop, fill = Cluster)) +
+admixture.p <- ggplot(tbl_use, aes(x = ID, y = prop, fill = Cluster)) +
     geom_bar(position = "fill", stat = "identity", width = 1) +
     scale_fill_manual(values = color_vector) + 
     theme_classic() +
@@ -598,8 +614,30 @@ ggplot(tbl_use, aes(x = ID, y = prop, fill = Cluster)) +
   facet_grid(~ admixture_super_pop_max, switch = "x",
                      scales = "free", space = "free")
 
-ggsave()
+ggsave('results/plots/habshd_admixture.png', plot = admixture.p, units = 'in', width = 9, height = 4)
 ```
 
+```{r}
+#| eval: false
+#| echo: false
+#| label: Admixture Descriptives
+
+out_admix %>% 
+  filter(partition == "sample") %>% 
+  group_by(admixture_super_pop_max) %>%
+  summarize(
+    AFR_min = min(AFR), 
+    AFR_max = max(AFR), 
+    AFR_avg = mean(AFR),
+    AMR_min = min(AMR), 
+    AMR_max = max(AMR), 
+    AMR_avg = mean(AMR), 
+    EUR_min = min(EUR), 
+    EUR_max = max(EUR), 
+    EUR_avg = mean(EUR), 
+  )
+
+
+```
 
 

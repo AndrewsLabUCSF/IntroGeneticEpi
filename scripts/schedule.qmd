@@ -20,6 +20,13 @@ In this mini-course, we will frequently reference Alzheimer's disease to illustr
 
 Genome-Wide Association Studies (GWAS) are foundational to various genetic analysis methodologies. In this session, we will delve into what a GWAS entails, the process of conducting one, and then engage in a hands-on exercise to carry out our own GWAS.
 
+**Coursework**
+
+- [Slides](https://www.dropbox.com/scl/fi/8ybwp5a78wh220t01132b/GWAS.pdf?rlkey=6yw2a6pgjpu0xfkbesiiwaybw&dl=0)
+- GWAS QC
+- GWAS 
+- GWAS SS
+
 **Readings**
 
 - Uffelmann, E. et al. Genome-wide association studies. [Nat Rev Methods Primers 1, 59 (2021)](https://www.nature.com/articles/s43586-021-00056-9).
@@ -37,6 +44,11 @@ Genome-Wide Association Studies (GWAS) are foundational to various genetic analy
 **Genetic Ancestry** 
 
 Genetic ancestry explores the lineage and heritage inferred from our DNA, providing insights into population history and individual heritage. This session will introduce the concepts and methodologies used in determining genetic ancestry, emphasizing their importance in genetic epidemiology research. 
+
+**Coursework**
+
+- [Slides](https://www.dropbox.com/scl/fi/xl0qg07teidd2mr9kofnq/GeneticAncestry.pdf?rlkey=tuezagblubu4zb9bc16p80a56&dl=0)
+- Genetic Ancestry
 
 **Readings**
 
