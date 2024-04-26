@@ -285,7 +285,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
    
   <ul>
   <li><a href="#prinicpal-component-analysis" id="toc-prinicpal-component-analysis" class="nav-link active" data-scroll-target="#prinicpal-component-analysis">Prinicpal Component Analysis</a></li>
-  <li><a href="#admixture" id="toc-admixture" class="nav-link" data-scroll-target="#admixture">ADMIXTURE</a></li>
+  <li><a href="#admixture" id="toc-admixture" class="nav-link" data-scroll-target="#admixture">ADMIXTURE</a>
+  <ul class="collapse">
+  <li><a href="#reference-processing" id="toc-reference-processing" class="nav-link" data-scroll-target="#reference-processing">Reference Processing</a></li>
+  <li><a href="#admixture-procedure" id="toc-admixture-procedure" class="nav-link" data-scroll-target="#admixture-procedure">ADMIXTURE Procedure</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -309,10 +313,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header>
 
-<p>TBD</p>
+<p>Genetic ancestry plays a pivotal role in genome-wide association studies (GWAS), providing insights into the population-specific genetic variations that may contribute to disease phenotypes. Accurate assessment of ancestry allows for the control of population stratification, which can confound results if not properly accounted for. Principal Component Analysis (PCA) is commonly used to visualize and correct for ancestry-related differences by identifying axes of genetic variation. Additionally, understanding admixture improves our interpretation of genetic data, enabling more precise localization of disease-associated variants in diverse populations.</p>
 <section id="prinicpal-component-analysis" class="level2">
 <h2 class="anchored" data-anchor-id="prinicpal-component-analysis">Prinicpal Component Analysis</h2>
-<p>TBD</p>
+<p>PLINK enables us to conduct Principal Component Analysis (PCA) on genetic data. In this case, we have merged the HABS-HD dataset with the 1000 Genomes (1KG) dataset to initially derive principal components from the 1KG, which are then used to project the genetic data of the HABS-HD dataset onto. This will generate two files <code>work/imputed_1kG_merged.eigenvec</code> - the eigenvectors - and <code>work/imputed_1kG_merged.eigenval</code> the PCs.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">plink</span> <span class="dt">\</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">--keep-allele-order</span> <span class="dt">\</span></span>
@@ -323,7 +327,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">--pca-clusters</span> resources/genetic_epi/1kG_pops_unique.txt <span class="dt">\</span></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">--out</span> work/imputed_1kG_merged</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>To categorize HABS-HD samples into the closest 1KG superpopulation, we calculate the geometric median for each cluster, assess the Euclidean distance from each sample to these medians, and assign samples to the nearest cluster accordingly.</p>
 <div class="cell">
+<details>
+<summary>Import Packges</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/usr/bin/env Rscript</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">message</span>(<span class="st">"Loading packages"</span>)</span>
@@ -335,299 +342,534 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
 <span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>(<span class="fu">library</span>(purrr))</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Get geometric median</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="do">## rdocumentation.org/packages/bigutilsr/versions/0.3.3/topics/geometric_median</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>geometric_median <span class="ot">&lt;-</span> <span class="cf">function</span>(u, <span class="at">tol =</span> <span class="fl">1e-10</span>, <span class="at">maxiter =</span> <span class="dv">1000</span>, <span class="at">by_grp =</span> <span class="cn">NULL</span>) {</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(by_grp))</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">do.call</span>(<span class="st">"rbind"</span>, <span class="fu">by</span>(u, by_grp, geometric_median)))</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  u_old <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(u)</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_len</span>(maxiter)) {</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    norm <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">rowSums</span>(<span class="fu">sweep</span>(u, <span class="dv">2</span>, u_old, <span class="st">"-"</span>)<span class="sc">^</span><span class="dv">2</span>))</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    u_new <span class="ot">&lt;-</span> <span class="fu">colSums</span>(<span class="fu">sweep</span>(u, <span class="dv">1</span>, norm, <span class="st">"/"</span>)) <span class="sc">/</span> <span class="fu">sum</span>(<span class="dv">1</span> <span class="sc">/</span> norm)</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    diff <span class="ot">&lt;-</span> <span class="fu">max</span>(<span class="fu">abs</span>(u_new <span class="sc">-</span> u_old))</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (diff <span class="sc">&lt;</span> tol)</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>      <span class="cf">break</span></span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    u_old <span class="ot">&lt;-</span> u_new</span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (k <span class="sc">==</span> maxiter)</span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">warning</span>(<span class="st">"The maximum number of iterations has been reached."</span>)</span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  u_new</span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="co"># assign sample to cluster</span></span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="do">## https://www.biorxiv.org/content/10.1101/2020.10.06.328203v2.full</span></span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="do">## adomingues.github.io/2015/09/24/finding-closest-element-to-a-number-in-a-list</span></span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>find_cluster <span class="ot">&lt;-</span> <span class="cf">function</span>(df, clusters) {</span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>  superpops <span class="ot">&lt;-</span> clusters<span class="sc">$</span>superpop</span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>  samp_pcs <span class="ot">&lt;-</span> <span class="fu">select</span>(df, <span class="fu">starts_with</span>(<span class="st">"PC"</span>))</span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>  mat <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(clusters, samp_pcs) <span class="sc">%&gt;%</span> {<span class="fu">suppressWarnings</span>(<span class="fu">dist</span>(.))}</span>
-<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>  <span class="co"># mat</span></span>
-<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>  clus <span class="ot">&lt;-</span> <span class="fu">which.min</span>(<span class="fu">as.matrix</span>(mat)[<span class="dv">6</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>])</span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(df, <span class="at">superpop_infered =</span> superpops[clus])</span>
-<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>vec <span class="ot">&lt;-</span> <span class="st">'work/imputed_1kG_merged.eigenvec'</span></span>
-<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>val <span class="ot">&lt;-</span> <span class="st">'work/imputed_1kG_merged.eigenval'</span></span>
-<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>base <span class="ot">&lt;-</span> <span class="st">'resources/genetic_epi/1kG_pops.txt'</span></span>
-<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>target <span class="ot">&lt;-</span> <span class="st">'work/habshd_sampleQC.fam'</span></span>
-<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>output <span class="ot">&lt;-</span> snakemake<span class="sc">@</span>output[[<span class="st">"excl"</span>]]</span>
-<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>rmd <span class="ot">&lt;-</span> snakemake<span class="sc">@</span>output[[<span class="st">"rmd"</span>]]</span>
-<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>sample <span class="ot">&lt;-</span> <span class="st">'HABS-HD'</span></span>
-<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>population <span class="ot">&lt;-</span> <span class="st">'all'</span></span>
-<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>extraref <span class="ot">&lt;-</span> snakemake<span class="sc">@</span>params[[<span class="st">"extraref"</span>]]</span>
-<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>sdev <span class="ot">&lt;-</span> snakemake<span class="sc">@</span>params[[<span class="st">"sd"</span>]]</span>
-<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>pcs_out_path <span class="ot">&lt;-</span> snakemake<span class="sc">@</span>output[[<span class="st">"pcs_pops"</span>]]</span>
-<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>tg_pops_file <span class="ot">&lt;-</span> <span class="st">'resources/genetic_epi/tg_subpops.tsv'</span></span>
-<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a><span class="co">#load("output/ADGC/x_present_AA/ADC8-AA_exclude.pca.params.Rdata")</span></span>
-<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">tolower</span>(population) <span class="sc">==</span> <span class="st">"all"</span>) {</span>
-<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a>  all_pops <span class="ot">&lt;-</span> T</span>
-<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
-<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>  all_pops <span class="ot">&lt;-</span> F</span>
-<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a><span class="do">##---- Read in Data ----##</span></span>
-<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a><span class="fu">message</span>(<span class="st">"Reading data files"</span>)</span>
-<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a><span class="co"># count columns and PCs</span></span>
-<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>n_eig <span class="ot">&lt;-</span> <span class="fu">count_fields</span>(vec, <span class="fu">tokenizer_delim</span>(<span class="at">delim =</span> <span class="st">" "</span>), <span class="at">n_max =</span> <span class="dv">1</span>) <span class="sc">-</span> <span class="dv">2</span></span>
-<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate colnames</span></span>
-<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a>pc_names <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"PC"</span>, <span class="dv">1</span><span class="sc">:</span>n_eig)</span>
-<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a>names_col <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"FID"</span>, <span class="st">"IID"</span>, pc_names)</span>
-<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a><span class="co"># Read in eigenvectors and z-score transform</span></span>
-<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a>pca_orig <span class="ot">&lt;-</span> <span class="fu">read_delim</span>(vec,</span>
-<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>                  <span class="at">delim =</span> <span class="st">" "</span>, <span class="at">col_names =</span> names_col,</span>
-<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>                  <span class="at">col_types =</span> <span class="fu">cols</span>(<span class="at">.default =</span> <span class="st">"d"</span>, <span class="at">FID =</span> <span class="st">"c"</span>, <span class="at">IID =</span> <span class="st">"c"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>         <span class="fu">mutate_at</span>(pc_names, <span class="cf">function</span>(x) <span class="fu">as.vector</span>(<span class="fu">scale</span>(x)))</span>
-<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a><span class="co"># read in egienvalues</span></span>
-<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>eigenval <span class="ot">&lt;-</span> val <span class="sc">%&gt;%</span></span>
-<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>  read_lines <span class="sc">%&gt;%</span></span>
-<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a>  parse_number <span class="sc">%&gt;%</span></span>
-<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">eigenval =</span> .,</span>
-<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a>         <span class="at">PC =</span> <span class="fu">factor</span>(pc_names, <span class="at">levels =</span> pc_names)) <span class="sc">%&gt;%</span> <span class="co">#PC Names</span></span>
-<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">PVE =</span> <span class="fu">round</span>(eigenval <span class="sc">/</span> <span class="fu">sum</span>(eigenval), <span class="dv">3</span>)) <span class="sc">%&gt;%</span> <span class="co">#PVE</span></span>
-<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(PC, eigenval, PVE) <span class="co">#Reorder columns</span></span>
-<span id="cb2-92"><a href="#cb2-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-93"><a href="#cb2-93" aria-hidden="true" tabindex="-1"></a><span class="co"># population data file, usually from 1000 genomes and potentially with extra ref</span></span>
-<span id="cb2-94"><a href="#cb2-94" aria-hidden="true" tabindex="-1"></a>base_pops_raw <span class="ot">&lt;-</span> <span class="fu">read_table</span>(base, <span class="at">col_types =</span> <span class="fu">cols</span>(<span class="at">.default =</span> <span class="st">"c"</span>))</span>
-<span id="cb2-95"><a href="#cb2-95" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a><span class="co"># population data from target set</span></span>
-<span id="cb2-97"><a href="#cb2-97" aria-hidden="true" tabindex="-1"></a>famcols <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"FID"</span>, <span class="st">"IID"</span>, <span class="st">"PID"</span>, <span class="st">"MID"</span>, <span class="st">"Sex"</span>, <span class="st">"Pheno"</span>)</span>
-<span id="cb2-98"><a href="#cb2-98" aria-hidden="true" tabindex="-1"></a>target_pops_raw <span class="ot">&lt;-</span> <span class="fu">read_table</span>(target, <span class="at">col_names =</span> famcols,</span>
-<span id="cb2-99"><a href="#cb2-99" aria-hidden="true" tabindex="-1"></a>  <span class="at">col_types =</span> <span class="st">"ccccii"</span>)</span>
-<span id="cb2-100"><a href="#cb2-100" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-101"><a href="#cb2-101" aria-hidden="true" tabindex="-1"></a><span class="fu">message</span>(<span class="st">"Processing data"</span>)</span>
-<span id="cb2-102"><a href="#cb2-102" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- Data wrangling ---- #</span></span>
-<span id="cb2-103"><a href="#cb2-103" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-104"><a href="#cb2-104" aria-hidden="true" tabindex="-1"></a><span class="co"># Read in populations and superpops</span></span>
-<span id="cb2-105"><a href="#cb2-105" aria-hidden="true" tabindex="-1"></a>tg_pops <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(tg_pops_file, <span class="at">col_types =</span> <span class="st">"cccc"</span>)</span>
-<span id="cb2-106"><a href="#cb2-106" aria-hidden="true" tabindex="-1"></a>populations <span class="ot">&lt;-</span> tg_pops <span class="sc">%&gt;%</span> <span class="fu">select</span>(pop, spop) <span class="sc">%&gt;%</span> deframe <span class="sc">%&gt;%</span> as.list</span>
-<span id="cb2-107"><a href="#cb2-107" aria-hidden="true" tabindex="-1"></a>superpops <span class="ot">&lt;-</span> <span class="fu">unlist</span>(populations) <span class="sc">%&gt;%</span> <span class="fu">unique</span>()</span>
-<span id="cb2-108"><a href="#cb2-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-109"><a href="#cb2-109" aria-hidden="true" tabindex="-1"></a>extra_pops <span class="ot">&lt;-</span> base_pops_raw[</span>
-<span id="cb2-110"><a href="#cb2-110" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span>(base_pops_raw<span class="sc">$</span>Population <span class="sc">%in%</span> <span class="fu">names</span>(populations)), ] <span class="sc">%&gt;%</span></span>
-<span id="cb2-111"><a href="#cb2-111" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(Population) <span class="sc">%&gt;%</span></span>
-<span id="cb2-112"><a href="#cb2-112" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(Population)</span>
-<span id="cb2-113"><a href="#cb2-113" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-114"><a href="#cb2-114" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(extra_pops) <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;&amp;</span> extraref <span class="sc">==</span> extra_pops) {</span>
-<span id="cb2-115"><a href="#cb2-115" aria-hidden="true" tabindex="-1"></a>  populations[extraref] <span class="ot">&lt;-</span> population</span>
-<span id="cb2-116"><a href="#cb2-116" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> <span class="cf">if</span> (<span class="fu">length</span>(extra_pops) <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;&amp;</span> extraref <span class="sc">!=</span> <span class="st">"none"</span>) {</span>
-<span id="cb2-117"><a href="#cb2-117" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">"Extra population missing from reference!"</span>)</span>
-<span id="cb2-118"><a href="#cb2-118" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> <span class="cf">if</span> (<span class="fu">length</span>(extra_pops) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
-<span id="cb2-119"><a href="#cb2-119" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">"Non-1kG population codes are not yet implemented. Go bug Brian."</span>)</span>
-<span id="cb2-120"><a href="#cb2-120" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-121"><a href="#cb2-121" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-122"><a href="#cb2-122" aria-hidden="true" tabindex="-1"></a><span class="co"># Deal with invalid cohort names</span></span>
-<span id="cb2-123"><a href="#cb2-123" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-124"><a href="#cb2-124" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (sample <span class="sc">%in%</span> <span class="fu">names</span>(populations)) {</span>
-<span id="cb2-125"><a href="#cb2-125" aria-hidden="true" tabindex="-1"></a>  sample <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"s_"</span>, sample)</span>
-<span id="cb2-126"><a href="#cb2-126" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-127"><a href="#cb2-127" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-128"><a href="#cb2-128" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (sample <span class="sc">%in%</span> populations) {</span>
-<span id="cb2-129"><a href="#cb2-129" aria-hidden="true" tabindex="-1"></a>  sample_s <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"s_"</span>, sample)</span>
-<span id="cb2-130"><a href="#cb2-130" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
-<span id="cb2-131"><a href="#cb2-131" aria-hidden="true" tabindex="-1"></a>  sample_s <span class="ot">&lt;-</span> sample</span>
-<span id="cb2-132"><a href="#cb2-132" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-133"><a href="#cb2-133" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-134"><a href="#cb2-134" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-135"><a href="#cb2-135" aria-hidden="true" tabindex="-1"></a><span class="do">##  Munge population dataframes from 1000 genomes</span></span>
-<span id="cb2-136"><a href="#cb2-136" aria-hidden="true" tabindex="-1"></a>base_pops <span class="ot">&lt;-</span> base_pops_raw <span class="sc">%&gt;%</span></span>
-<span id="cb2-137"><a href="#cb2-137" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">cohort =</span> <span class="st">"Reference"</span>,</span>
-<span id="cb2-138"><a href="#cb2-138" aria-hidden="true" tabindex="-1"></a>         <span class="at">superpop =</span> <span class="fu">recode</span>(.<span class="sc">$</span>Population, <span class="sc">!!!</span>populations))</span>
-<span id="cb2-139"><a href="#cb2-139" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-140"><a href="#cb2-140" aria-hidden="true" tabindex="-1"></a><span class="do">##  Munge target population dataframes</span></span>
-<span id="cb2-141"><a href="#cb2-141" aria-hidden="true" tabindex="-1"></a>target_pops <span class="ot">&lt;-</span> target_pops_raw <span class="sc">%&gt;%</span></span>
-<span id="cb2-142"><a href="#cb2-142" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(FID, IID) <span class="sc">%&gt;%</span></span>
-<span id="cb2-143"><a href="#cb2-143" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Population =</span> sample, <span class="at">superpop =</span> sample_s,</span>
-<span id="cb2-144"><a href="#cb2-144" aria-hidden="true" tabindex="-1"></a>    <span class="at">cohort =</span> sample_s)</span>
-<span id="cb2-145"><a href="#cb2-145" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-146"><a href="#cb2-146" aria-hidden="true" tabindex="-1"></a><span class="do">## Check this</span></span>
-<span id="cb2-147"><a href="#cb2-147" aria-hidden="true" tabindex="-1"></a>remove_tg <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
-<span id="cb2-148"><a href="#cb2-148" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (remove_tg) {</span>
-<span id="cb2-149"><a href="#cb2-149" aria-hidden="true" tabindex="-1"></a>  target_pops <span class="ot">&lt;-</span> target_pops <span class="sc">%&gt;%</span></span>
-<span id="cb2-150"><a href="#cb2-150" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span>(IID <span class="sc">%in%</span> base_pops<span class="sc">$</span>IID <span class="sc">&amp;</span> FID <span class="sc">%in%</span> base_pops<span class="sc">$</span>FID))</span>
-<span id="cb2-151"><a href="#cb2-151" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-152"><a href="#cb2-152" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-153"><a href="#cb2-153" aria-hidden="true" tabindex="-1"></a><span class="co"># fix improperly split FID_IID</span></span>
-<span id="cb2-154"><a href="#cb2-154" aria-hidden="true" tabindex="-1"></a>pca_fidiid <span class="ot">&lt;-</span> pca_orig <span class="sc">%&gt;%</span></span>
-<span id="cb2-155"><a href="#cb2-155" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unite</span>(<span class="st">"FIDIID"</span>, FID, IID, <span class="at">sep =</span> <span class="st">"_"</span>)</span>
-<span id="cb2-156"><a href="#cb2-156" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-157"><a href="#cb2-157" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-158"><a href="#cb2-158" aria-hidden="true" tabindex="-1"></a><span class="do">##  Munge PCA, base pop and target pop</span></span>
-<span id="cb2-159"><a href="#cb2-159" aria-hidden="true" tabindex="-1"></a>both_pops <span class="ot">&lt;-</span> target_pops <span class="sc">%&gt;%</span></span>
-<span id="cb2-160"><a href="#cb2-160" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(base_pops) <span class="sc">%&gt;%</span></span>
-<span id="cb2-161"><a href="#cb2-161" aria-hidden="true" tabindex="-1"></a>  <span class="do">##### FIX BAD FID_IID SPLIT #####</span></span>
-<span id="cb2-162"><a href="#cb2-162" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unite</span>(<span class="st">"FIDIID"</span>, FID, IID, <span class="at">sep =</span> <span class="st">"_"</span>, <span class="at">remove =</span> F)</span>
-<span id="cb2-163"><a href="#cb2-163" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-164"><a href="#cb2-164" aria-hidden="true" tabindex="-1"></a>pca_corrected <span class="ot">&lt;-</span> pca_fidiid <span class="sc">%&gt;%</span></span>
-<span id="cb2-165"><a href="#cb2-165" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(both_pops, <span class="at">by =</span> <span class="st">"FIDIID"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb2-166"><a href="#cb2-166" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">any_of</span>(<span class="fu">names</span>(both_pops)), <span class="fu">everything</span>(), <span class="sc">-</span>FIDIID) <span class="sc">%&gt;%</span></span>
-<span id="cb2-167"><a href="#cb2-167" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">FID =</span> <span class="fu">str_remove</span>(FID, <span class="st">"^1000g___"</span>))</span>
-<span id="cb2-168"><a href="#cb2-168" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-169"><a href="#cb2-169" aria-hidden="true" tabindex="-1"></a><span class="do">## Colours for plots</span></span>
-<span id="cb2-170"><a href="#cb2-170" aria-hidden="true" tabindex="-1"></a>pca_col <span class="ot">&lt;-</span> pca_corrected <span class="sc">%&gt;%</span></span>
-<span id="cb2-171"><a href="#cb2-171" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(superpop) <span class="sc">%&gt;%</span></span>
-<span id="cb2-172"><a href="#cb2-172" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> sample_s, <span class="st">"black"</span>, <span class="cn">NA</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb2-173"><a href="#cb2-173" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> <span class="st">"AFR"</span>, <span class="st">"#E69F00"</span>, color)) <span class="sc">%&gt;%</span></span>
-<span id="cb2-174"><a href="#cb2-174" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> <span class="st">"AMR"</span>, <span class="st">"#0072B2"</span>, color)) <span class="sc">%&gt;%</span></span>
-<span id="cb2-175"><a href="#cb2-175" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> <span class="st">"EAS"</span>, <span class="st">"#009E73"</span>, color)) <span class="sc">%&gt;%</span></span>
-<span id="cb2-176"><a href="#cb2-176" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> <span class="st">"EUR"</span>, <span class="st">"#CC79A7"</span>, color)) <span class="sc">%&gt;%</span></span>
-<span id="cb2-177"><a href="#cb2-177" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> <span class="st">"NFE"</span>, <span class="st">"#CC79A7"</span>, color)) <span class="sc">%&gt;%</span></span>
-<span id="cb2-178"><a href="#cb2-178" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> <span class="st">"FIN"</span>, <span class="st">"#960018"</span>, color)) <span class="sc">%&gt;%</span></span>
-<span id="cb2-179"><a href="#cb2-179" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> <span class="st">"SAS"</span>, <span class="st">"#D55E00"</span>, color)) <span class="sc">%&gt;%</span></span>
-<span id="cb2-180"><a href="#cb2-180" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> <span class="st">"MID"</span>, <span class="st">"#56B4E9"</span>, color)) <span class="sc">%&gt;%</span></span>
-<span id="cb2-181"><a href="#cb2-181" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> <span class="st">"AMI"</span>, <span class="st">"#F0E442"</span>, color))</span>
-<span id="cb2-182"><a href="#cb2-182" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-183"><a href="#cb2-183" aria-hidden="true" tabindex="-1"></a><span class="co"># ternary plot and assignment:</span></span>
-<span id="cb2-184"><a href="#cb2-184" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-185"><a href="#cb2-185" aria-hidden="true" tabindex="-1"></a><span class="fu">message</span>(<span class="st">"Ternary Plots"</span>)</span>
-<span id="cb2-186"><a href="#cb2-186" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-187"><a href="#cb2-187" aria-hidden="true" tabindex="-1"></a><span class="co"># Pull out 1000 genomes samples</span></span>
-<span id="cb2-188"><a href="#cb2-188" aria-hidden="true" tabindex="-1"></a>kg <span class="ot">&lt;-</span> <span class="fu">filter</span>(pca_corrected, cohort <span class="sc">==</span> <span class="st">"Reference"</span>)</span>
-<span id="cb2-189"><a href="#cb2-189" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-190"><a href="#cb2-190" aria-hidden="true" tabindex="-1"></a><span class="co"># find geometric median of each PC for each cluster</span></span>
-<span id="cb2-191"><a href="#cb2-191" aria-hidden="true" tabindex="-1"></a>clusters <span class="ot">&lt;-</span></span>
-<span id="cb2-192"><a href="#cb2-192" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(kg, <span class="fu">starts_with</span>(<span class="st">"PC"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb2-193"><a href="#cb2-193" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geometric_median</span>(<span class="at">by_grp =</span> kg<span class="sc">$</span>superpop) <span class="sc">%&gt;%</span></span>
-<span id="cb2-194"><a href="#cb2-194" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>(<span class="at">rownames =</span> <span class="st">"superpop"</span>)</span>
-<span id="cb2-195"><a href="#cb2-195" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-196"><a href="#cb2-196" aria-hidden="true" tabindex="-1"></a><span class="co"># extract sample information and assign to cluster</span></span>
-<span id="cb2-197"><a href="#cb2-197" aria-hidden="true" tabindex="-1"></a>pca <span class="ot">&lt;-</span> pca_corrected <span class="sc">%&gt;%</span></span>
-<span id="cb2-198"><a href="#cb2-198" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_split</span>(IID) <span class="sc">%&gt;%</span></span>
-<span id="cb2-199"><a href="#cb2-199" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map_df</span>(find_cluster, clusters)</span>
-<span id="cb2-200"><a href="#cb2-200" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-201"><a href="#cb2-201" aria-hidden="true" tabindex="-1"></a><span class="fu">write_tsv</span>(pca, pcs_out_path)</span>
-<span id="cb2-202"><a href="#cb2-202" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-203"><a href="#cb2-203" aria-hidden="true" tabindex="-1"></a>report_settings <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb2-204"><a href="#cb2-204" aria-hidden="true" tabindex="-1"></a>  <span class="at">all_pops =</span> all_pops,</span>
-<span id="cb2-205"><a href="#cb2-205" aria-hidden="true" tabindex="-1"></a>  <span class="at">filter_inference =</span> F,</span>
-<span id="cb2-206"><a href="#cb2-206" aria-hidden="true" tabindex="-1"></a>  <span class="at">filter_sd =</span> F</span>
-<span id="cb2-207"><a href="#cb2-207" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-208"><a href="#cb2-208" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-209"><a href="#cb2-209" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (all_pops) {</span>
-<span id="cb2-210"><a href="#cb2-210" aria-hidden="true" tabindex="-1"></a>  tab_1 <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(clusters)</span>
-<span id="cb2-211"><a href="#cb2-211" aria-hidden="true" tabindex="-1"></a>  pca_sample <span class="ot">&lt;-</span> pca <span class="sc">%&gt;%</span></span>
-<span id="cb2-212"><a href="#cb2-212" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(cohort <span class="sc">!=</span> <span class="st">"Reference"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb2-213"><a href="#cb2-213" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">pop_outliers =</span> F)</span>
-<span id="cb2-214"><a href="#cb2-214" aria-hidden="true" tabindex="-1"></a>  tab_pop_exclusions <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">Exclusions =</span> <span class="st">"None"</span>)</span>
-<span id="cb2-215"><a href="#cb2-215" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.numeric</span>(sdev)) {</span>
-<span id="cb2-216"><a href="#cb2-216" aria-hidden="true" tabindex="-1"></a>  report_settings<span class="sc">$</span>filter_inference <span class="ot">&lt;-</span> T</span>
-<span id="cb2-217"><a href="#cb2-217" aria-hidden="true" tabindex="-1"></a>  tab_1 <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(clusters)</span>
-<span id="cb2-218"><a href="#cb2-218" aria-hidden="true" tabindex="-1"></a>  pca_sample <span class="ot">&lt;-</span> pca <span class="sc">%&gt;%</span></span>
-<span id="cb2-219"><a href="#cb2-219" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(cohort <span class="sc">!=</span> <span class="st">"Reference"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb2-220"><a href="#cb2-220" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">pop_outliers =</span> <span class="sc">!</span>(superpop_infered <span class="sc">%in%</span> population))</span>
-<span id="cb2-221"><a href="#cb2-221" aria-hidden="true" tabindex="-1"></a>  tab_pop_exclusions <span class="ot">&lt;-</span> pca_sample <span class="sc">%&gt;%</span></span>
-<span id="cb2-222"><a href="#cb2-222" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(pop_outliers) <span class="sc">%&gt;%</span></span>
-<span id="cb2-223"><a href="#cb2-223" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(FID, IID, <span class="st">"Infered Superpopulation"</span> <span class="ot">=</span> superpop_infered)</span>
-<span id="cb2-224"><a href="#cb2-224" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
-<span id="cb2-225"><a href="#cb2-225" aria-hidden="true" tabindex="-1"></a>  report_settings<span class="sc">$</span>filter_sd <span class="ot">&lt;-</span> T</span>
-<span id="cb2-226"><a href="#cb2-226" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ---- Population Outliers ---- #</span></span>
-<span id="cb2-227"><a href="#cb2-227" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Calculate the mean and ± specified number of sd for each PC of ref pop</span></span>
-<span id="cb2-228"><a href="#cb2-228" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-229"><a href="#cb2-229" aria-hidden="true" tabindex="-1"></a>  <span class="fu">message</span>(<span class="st">"Table 1"</span>)</span>
-<span id="cb2-230"><a href="#cb2-230" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-231"><a href="#cb2-231" aria-hidden="true" tabindex="-1"></a>  chosen_pca <span class="ot">&lt;-</span> pca_corrected <span class="sc">%&gt;%</span></span>
-<span id="cb2-232"><a href="#cb2-232" aria-hidden="true" tabindex="-1"></a>    <span class="fu">gather</span>(<span class="at">key =</span> <span class="st">"PC"</span>, <span class="at">value =</span> <span class="st">"eigenvalue"</span>, <span class="sc">!!</span><span class="fu">paste0</span>(<span class="st">"PC"</span>, <span class="dv">1</span><span class="sc">:</span>n_eig)) <span class="sc">%&gt;%</span></span>
-<span id="cb2-233"><a href="#cb2-233" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(superpop <span class="sc">==</span> population) <span class="sc">%&gt;%</span></span>
-<span id="cb2-234"><a href="#cb2-234" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(superpop, PC) <span class="sc">%&gt;%</span></span>
-<span id="cb2-235"><a href="#cb2-235" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">summarize</span>(<span class="at">mean =</span> <span class="fu">mean</span>(eigenvalue), <span class="at">sd =</span> <span class="fu">sd</span>(eigenvalue),</span>
-<span id="cb2-236"><a href="#cb2-236" aria-hidden="true" tabindex="-1"></a>                     <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb2-237"><a href="#cb2-237" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">lower =</span> mean <span class="sc">-</span> sd <span class="sc">*</span> sdev, <span class="at">upper =</span> mean <span class="sc">+</span> sd <span class="sc">*</span> sdev) <span class="sc">%&gt;%</span></span>
-<span id="cb2-238"><a href="#cb2-238" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">PC =</span> <span class="fu">factor</span>(PC, <span class="at">levels =</span> <span class="fu">paste0</span>(<span class="st">"PC"</span>, <span class="dv">1</span><span class="sc">:</span>n_eig))) <span class="sc">%&gt;%</span></span>
-<span id="cb2-239"><a href="#cb2-239" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(PC)</span>
-<span id="cb2-240"><a href="#cb2-240" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-241"><a href="#cb2-241" aria-hidden="true" tabindex="-1"></a>  <span class="co">#***Table 1:*** Mean and SD of PC in chosen population</span></span>
-<span id="cb2-242"><a href="#cb2-242" aria-hidden="true" tabindex="-1"></a>  tab_1 <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(chosen_pca)</span>
-<span id="cb2-243"><a href="#cb2-243" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-244"><a href="#cb2-244" aria-hidden="true" tabindex="-1"></a>  <span class="co"># For each sample individual, determine if ± specified SD from chosen pop</span></span>
-<span id="cb2-245"><a href="#cb2-245" aria-hidden="true" tabindex="-1"></a>  <span class="co"># for each principal component</span></span>
-<span id="cb2-246"><a href="#cb2-246" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-247"><a href="#cb2-247" aria-hidden="true" tabindex="-1"></a>  <span class="fu">message</span>(<span class="st">"Table 2"</span>)</span>
-<span id="cb2-248"><a href="#cb2-248" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-249"><a href="#cb2-249" aria-hidden="true" tabindex="-1"></a>  pca_range <span class="ot">&lt;-</span> <span class="cf">function</span>(pc, vals) {</span>
-<span id="cb2-250"><a href="#cb2-250" aria-hidden="true" tabindex="-1"></a>    lower <span class="ot">&lt;-</span> chosen_pca[chosen_pca<span class="sc">$</span>PC <span class="sc">==</span> pc, <span class="st">"lower"</span>] <span class="sc">%&gt;%</span> unlist <span class="sc">%&gt;%</span> unname</span>
-<span id="cb2-251"><a href="#cb2-251" aria-hidden="true" tabindex="-1"></a>    upper <span class="ot">&lt;-</span> chosen_pca[chosen_pca<span class="sc">$</span>PC <span class="sc">==</span> pc, <span class="st">"upper"</span>] <span class="sc">%&gt;%</span> unlist <span class="sc">%&gt;%</span> unname</span>
-<span id="cb2-252"><a href="#cb2-252" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sapply</span>(vals, <span class="cf">function</span>(x) x <span class="sc">&lt;</span> lower <span class="sc">|</span> x <span class="sc">&gt;</span> upper) <span class="sc">%&gt;%</span> as.logical</span>
-<span id="cb2-253"><a href="#cb2-253" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb2-254"><a href="#cb2-254" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-255"><a href="#cb2-255" aria-hidden="true" tabindex="-1"></a>  mut_pca <span class="ot">&lt;-</span> <span class="cf">function</span>(df, pc, pc_use) {</span>
-<span id="cb2-256"><a href="#cb2-256" aria-hidden="true" tabindex="-1"></a>    pc <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">:</span>pc</span>
-<span id="cb2-257"><a href="#cb2-257" aria-hidden="true" tabindex="-1"></a>    pc_use <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"PC"</span>, pc, <span class="st">".outliers"</span>)[<span class="dv">1</span><span class="sc">:</span>pc_use]</span>
-<span id="cb2-258"><a href="#cb2-258" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">paste0</span>(<span class="st">"PC"</span>, pc)) {</span>
-<span id="cb2-259"><a href="#cb2-259" aria-hidden="true" tabindex="-1"></a>      df <span class="sc">%&lt;&gt;%</span> <span class="fu">mutate</span>(<span class="st">`</span><span class="at">!!</span><span class="st">`</span>(<span class="fu">paste0</span>(i, <span class="st">".outliers"</span>)) <span class="sc">:</span><span class="er">=</span> <span class="fu">pca_range</span>(i, .[, i]))</span>
-<span id="cb2-260"><a href="#cb2-260" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb2-261"><a href="#cb2-261" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(df, <span class="at">pop_outliers =</span> <span class="fu">rowSums</span>(dplyr<span class="sc">::</span><span class="fu">select</span>(df, <span class="sc">!!</span>pc_use)) <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
-<span id="cb2-262"><a href="#cb2-262" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb2-263"><a href="#cb2-263" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-264"><a href="#cb2-264" aria-hidden="true" tabindex="-1"></a>  pca_sample <span class="ot">&lt;-</span> pca_corrected <span class="sc">%&gt;%</span></span>
-<span id="cb2-265"><a href="#cb2-265" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(superpop <span class="sc">==</span> sample_s) <span class="sc">%&gt;%</span></span>
-<span id="cb2-266"><a href="#cb2-266" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mut_pca</span>(n_eig, <span class="dv">10</span>)</span>
-<span id="cb2-267"><a href="#cb2-267" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-268"><a href="#cb2-268" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ***Table 2:*** Population Outliers for each PC</span></span>
-<span id="cb2-269"><a href="#cb2-269" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-270"><a href="#cb2-270" aria-hidden="true" tabindex="-1"></a>  outlier_cols <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"PC"</span>, <span class="dv">1</span><span class="sc">:</span>n_eig, <span class="st">".outliers"</span>)</span>
-<span id="cb2-271"><a href="#cb2-271" aria-hidden="true" tabindex="-1"></a>  outlier_cols_rename <span class="ot">&lt;-</span> outlier_cols</span>
-<span id="cb2-272"><a href="#cb2-272" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(outlier_cols_rename) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"PC"</span>, <span class="dv">1</span><span class="sc">:</span>n_eig)</span>
-<span id="cb2-273"><a href="#cb2-273" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-274"><a href="#cb2-274" aria-hidden="true" tabindex="-1"></a>  replace_tf <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">ifelse</span>(x <span class="sc">==</span> T, <span class="st">"Yes"</span>, <span class="fu">ifelse</span>(x <span class="sc">==</span> F, <span class="st">"No"</span>, x))</span>
-<span id="cb2-275"><a href="#cb2-275" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-276"><a href="#cb2-276" aria-hidden="true" tabindex="-1"></a>  tab_pop_exclusions <span class="ot">&lt;-</span> pca_sample <span class="sc">%&gt;%</span></span>
-<span id="cb2-277"><a href="#cb2-277" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(FID, IID, <span class="sc">!!</span>outlier_cols, pop_outliers) <span class="sc">%&gt;%</span></span>
-<span id="cb2-278"><a href="#cb2-278" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(pop_outliers <span class="sc">==</span> T) <span class="sc">%&gt;%</span></span>
-<span id="cb2-279"><a href="#cb2-279" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">rename</span>(<span class="sc">!!!</span>outlier_cols_rename) <span class="sc">%&gt;%</span></span>
-<span id="cb2-280"><a href="#cb2-280" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">-</span>pop_outliers) <span class="sc">%&gt;%</span></span>
-<span id="cb2-281"><a href="#cb2-281" aria-hidden="true" tabindex="-1"></a>    <span class="fu">transmute_all</span>(replace_tf)</span>
-<span id="cb2-282"><a href="#cb2-282" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-283"><a href="#cb2-283" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-284"><a href="#cb2-284" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- Write out outliers ---- #</span></span>
-<span id="cb2-285"><a href="#cb2-285" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-286"><a href="#cb2-286" aria-hidden="true" tabindex="-1"></a>no_outliers <span class="ot">&lt;-</span> <span class="fu">sum</span>(pca_sample<span class="sc">$</span>pop_outliers) <span class="sc">==</span> <span class="dv">0</span></span>
-<span id="cb2-287"><a href="#cb2-287" aria-hidden="true" tabindex="-1"></a>exclude_pop_outliers <span class="ot">&lt;-</span> pca_sample <span class="sc">%&gt;%</span></span>
-<span id="cb2-288"><a href="#cb2-288" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(pop_outliers <span class="sc">==</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb2-289"><a href="#cb2-289" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(FID, IID)</span>
-<span id="cb2-290"><a href="#cb2-290" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-291"><a href="#cb2-291" aria-hidden="true" tabindex="-1"></a><span class="fu">write_tsv</span>(exclude_pop_outliers, output, <span class="at">col_names =</span> F)</span>
-<span id="cb2-292"><a href="#cb2-292" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-293"><a href="#cb2-293" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(tab_1, tab_pop_exclusions, no_outliers, pca, pca_sample, eigenval,</span>
-<span id="cb2-294"><a href="#cb2-294" aria-hidden="true" tabindex="-1"></a>     pca_col, sdev, report_settings, <span class="at">file =</span> rmd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Get geometric median</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="do">## rdocumentation.org/packages/bigutilsr/versions/0.3.3/topics/geometric_median</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>geometric_median <span class="ot">&lt;-</span> <span class="cf">function</span>(u, <span class="at">tol =</span> <span class="fl">1e-10</span>, <span class="at">maxiter =</span> <span class="dv">1000</span>, <span class="at">by_grp =</span> <span class="cn">NULL</span>) {</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(by_grp))</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">do.call</span>(<span class="st">"rbind"</span>, <span class="fu">by</span>(u, by_grp, geometric_median)))</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  u_old <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(u)</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_len</span>(maxiter)) {</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    norm <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">rowSums</span>(<span class="fu">sweep</span>(u, <span class="dv">2</span>, u_old, <span class="st">"-"</span>)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    u_new <span class="ot">&lt;-</span> <span class="fu">colSums</span>(<span class="fu">sweep</span>(u, <span class="dv">1</span>, norm, <span class="st">"/"</span>)) <span class="sc">/</span> <span class="fu">sum</span>(<span class="dv">1</span> <span class="sc">/</span> norm)</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    diff <span class="ot">&lt;-</span> <span class="fu">max</span>(<span class="fu">abs</span>(u_new <span class="sc">-</span> u_old))</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (diff <span class="sc">&lt;</span> tol)</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>      <span class="cf">break</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    u_old <span class="ot">&lt;-</span> u_new</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (k <span class="sc">==</span> maxiter)</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">warning</span>(<span class="st">"The maximum number of iterations has been reached."</span>)</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>  u_new</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="co"># assign sample to cluster</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="do">## https://www.biorxiv.org/content/10.1101/2020.10.06.328203v2.full</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="do">## adomingues.github.io/2015/09/24/finding-closest-element-to-a-number-in-a-list</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>find_cluster <span class="ot">&lt;-</span> <span class="cf">function</span>(df, clusters) {</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>  superpops <span class="ot">&lt;-</span> clusters<span class="sc">$</span>superpop</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>  samp_pcs <span class="ot">&lt;-</span> <span class="fu">select</span>(df, <span class="fu">starts_with</span>(<span class="st">"PC"</span>))</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>  mat <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(clusters, samp_pcs) <span class="sc">%&gt;%</span> {<span class="fu">suppressWarnings</span>(<span class="fu">dist</span>(.))}</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>  <span class="co"># mat</span></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>  clus <span class="ot">&lt;-</span> <span class="fu">which.min</span>(<span class="fu">as.matrix</span>(mat)[<span class="dv">6</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>])</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(df, <span class="at">superpop_infered =</span> superpops[clus])</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>You will need to ensure the following files are in your <code>resources</code> and <code>work</code> directories.</p>
+<div class="cell">
+<details>
+<summary>Import Data</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>vec <span class="ot">&lt;-</span> <span class="st">'work/imputed_1kG_merged.eigenvec'</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>val <span class="ot">&lt;-</span> <span class="st">'work/imputed_1kG_merged.eigenval'</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>base <span class="ot">&lt;-</span> <span class="st">'resources/genetic_epi/1kG_pops.txt'</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>target <span class="ot">&lt;-</span> <span class="st">'work/habshd_sampleQC.fam'</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># output &lt;- snakemake@output[["excl"]]</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co"># rmd &lt;- snakemake@output[["rmd"]]</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>sample <span class="ot">&lt;-</span> <span class="st">'HABS-HD'</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>population <span class="ot">&lt;-</span> <span class="st">'all'</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co"># extraref &lt;- snakemake@params[["extraref"]]</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co"># sdev &lt;- snakemake@params[["sd"]]</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>pcs_out_path <span class="ot">&lt;-</span> <span class="st">'work/habs_pca.tsv'</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>tg_pops_file <span class="ot">&lt;-</span> <span class="st">'resources/genetic_epi/tg_subpops.tsv'</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="co">#load("output/ADGC/x_present_AA/ADC8-AA_exclude.pca.params.Rdata")</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">tolower</span>(population) <span class="sc">==</span> <span class="st">"all"</span>) {</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  all_pops <span class="ot">&lt;-</span> T</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  all_pops <span class="ot">&lt;-</span> F</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="do">##---- Read in Data ----##</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="fu">message</span>(<span class="st">"Reading data files"</span>)</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="co"># count columns and PCs</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>n_eig <span class="ot">&lt;-</span> <span class="fu">count_fields</span>(vec, <span class="fu">tokenizer_delim</span>(<span class="at">delim =</span> <span class="st">" "</span>), <span class="at">n_max =</span> <span class="dv">1</span>) <span class="sc">-</span> <span class="dv">2</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate colnames</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>pc_names <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"PC"</span>, <span class="dv">1</span><span class="sc">:</span>n_eig)</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>names_col <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"FID"</span>, <span class="st">"IID"</span>, pc_names)</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Read in eigenvectors and z-score transform</span></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>pca_orig <span class="ot">&lt;-</span> <span class="fu">read_delim</span>(vec,</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>                  <span class="at">delim =</span> <span class="st">" "</span>, <span class="at">col_names =</span> names_col,</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>                  <span class="at">col_types =</span> <span class="fu">cols</span>(<span class="at">.default =</span> <span class="st">"d"</span>, <span class="at">FID =</span> <span class="st">"c"</span>, <span class="at">IID =</span> <span class="st">"c"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>         <span class="fu">mutate_at</span>(pc_names, <span class="cf">function</span>(x) <span class="fu">as.vector</span>(<span class="fu">scale</span>(x)))</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a><span class="co"># read in egienvalues</span></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>eigenval <span class="ot">&lt;-</span> val <span class="sc">%&gt;%</span></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>  read_lines <span class="sc">%&gt;%</span></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>  parse_number <span class="sc">%&gt;%</span></span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">eigenval =</span> .,</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>         <span class="at">PC =</span> <span class="fu">factor</span>(pc_names, <span class="at">levels =</span> pc_names)) <span class="sc">%&gt;%</span> <span class="co">#PC Names</span></span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">PVE =</span> <span class="fu">round</span>(eigenval <span class="sc">/</span> <span class="fu">sum</span>(eigenval), <span class="dv">3</span>)) <span class="sc">%&gt;%</span> <span class="co">#PVE</span></span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(PC, eigenval, PVE) <span class="co">#Reorder columns</span></span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a><span class="co"># population data file, usually from 1000 genomes and potentially with extra ref</span></span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>base_pops_raw <span class="ot">&lt;-</span> <span class="fu">read_table</span>(base, <span class="at">col_types =</span> <span class="fu">cols</span>(<span class="at">.default =</span> <span class="st">"c"</span>))</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a><span class="co"># population data from target set</span></span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>famcols <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"FID"</span>, <span class="st">"IID"</span>, <span class="st">"PID"</span>, <span class="st">"MID"</span>, <span class="st">"Sex"</span>, <span class="st">"Pheno"</span>)</span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>target_pops_raw <span class="ot">&lt;-</span> <span class="fu">read_table</span>(target, <span class="at">col_names =</span> famcols,</span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>  <span class="at">col_types =</span> <span class="st">"ccccii"</span>)</span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a><span class="fu">message</span>(<span class="st">"Processing data"</span>)</span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a><span class="co"># ---- Data wrangling ---- #</span></span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a><span class="co"># Read in populations and superpops</span></span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>tg_pops <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(tg_pops_file, <span class="at">col_types =</span> <span class="st">"cccc"</span>)</span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a>populations <span class="ot">&lt;-</span> tg_pops <span class="sc">%&gt;%</span> <span class="fu">select</span>(pop, spop) <span class="sc">%&gt;%</span> deframe <span class="sc">%&gt;%</span> as.list</span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a>superpops <span class="ot">&lt;-</span> <span class="fu">unlist</span>(populations) <span class="sc">%&gt;%</span> <span class="fu">unique</span>()</span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>extra_pops <span class="ot">&lt;-</span> base_pops_raw[</span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span>(base_pops_raw<span class="sc">$</span>Population <span class="sc">%in%</span> <span class="fu">names</span>(populations)), ] <span class="sc">%&gt;%</span></span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(Population) <span class="sc">%&gt;%</span></span>
+<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(Population)</span>
+<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(extra_pops) <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;&amp;</span> extraref <span class="sc">==</span> extra_pops) {</span>
+<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a>  populations[extraref] <span class="ot">&lt;-</span> population</span>
+<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> <span class="cf">if</span> (<span class="fu">length</span>(extra_pops) <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;&amp;</span> extraref <span class="sc">!=</span> <span class="st">"none"</span>) {</span>
+<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">"Extra population missing from reference!"</span>)</span>
+<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> <span class="cf">if</span> (<span class="fu">length</span>(extra_pops) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">"Non-1kG population codes are not yet implemented. Go bug Brian."</span>)</span>
+<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a><span class="co"># Deal with invalid cohort names</span></span>
+<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (sample <span class="sc">%in%</span> <span class="fu">names</span>(populations)) {</span>
+<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a>  sample <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"s_"</span>, sample)</span>
+<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (sample <span class="sc">%in%</span> populations) {</span>
+<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a>  sample_s <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"s_"</span>, sample)</span>
+<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a>  sample_s <span class="ot">&lt;-</span> sample</span>
+<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a><span class="do">##  Munge population dataframes from 1000 genomes</span></span>
+<span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a>base_pops <span class="ot">&lt;-</span> base_pops_raw <span class="sc">%&gt;%</span></span>
+<span id="cb3-92"><a href="#cb3-92" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">cohort =</span> <span class="st">"Reference"</span>,</span>
+<span id="cb3-93"><a href="#cb3-93" aria-hidden="true" tabindex="-1"></a>         <span class="at">superpop =</span> <span class="fu">recode</span>(.<span class="sc">$</span>Population, <span class="sc">!!!</span>populations))</span>
+<span id="cb3-94"><a href="#cb3-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-95"><a href="#cb3-95" aria-hidden="true" tabindex="-1"></a><span class="do">##  Munge target population dataframes</span></span>
+<span id="cb3-96"><a href="#cb3-96" aria-hidden="true" tabindex="-1"></a>target_pops <span class="ot">&lt;-</span> target_pops_raw <span class="sc">%&gt;%</span></span>
+<span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(FID, IID) <span class="sc">%&gt;%</span></span>
+<span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Population =</span> sample, <span class="at">superpop =</span> sample_s,</span>
+<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a>    <span class="at">cohort =</span> sample_s)</span>
+<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-101"><a href="#cb3-101" aria-hidden="true" tabindex="-1"></a><span class="do">## Check this</span></span>
+<span id="cb3-102"><a href="#cb3-102" aria-hidden="true" tabindex="-1"></a>remove_tg <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
+<span id="cb3-103"><a href="#cb3-103" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (remove_tg) {</span>
+<span id="cb3-104"><a href="#cb3-104" aria-hidden="true" tabindex="-1"></a>  target_pops <span class="ot">&lt;-</span> target_pops <span class="sc">%&gt;%</span></span>
+<span id="cb3-105"><a href="#cb3-105" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span>(IID <span class="sc">%in%</span> base_pops<span class="sc">$</span>IID <span class="sc">&amp;</span> FID <span class="sc">%in%</span> base_pops<span class="sc">$</span>FID))</span>
+<span id="cb3-106"><a href="#cb3-106" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-107"><a href="#cb3-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-108"><a href="#cb3-108" aria-hidden="true" tabindex="-1"></a><span class="co"># fix improperly split FID_IID</span></span>
+<span id="cb3-109"><a href="#cb3-109" aria-hidden="true" tabindex="-1"></a>pca_fidiid <span class="ot">&lt;-</span> pca_orig <span class="sc">%&gt;%</span></span>
+<span id="cb3-110"><a href="#cb3-110" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unite</span>(<span class="st">"FIDIID"</span>, FID, IID, <span class="at">sep =</span> <span class="st">"_"</span>)</span>
+<span id="cb3-111"><a href="#cb3-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-112"><a href="#cb3-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-113"><a href="#cb3-113" aria-hidden="true" tabindex="-1"></a><span class="do">##  Munge PCA, base pop and target pop</span></span>
+<span id="cb3-114"><a href="#cb3-114" aria-hidden="true" tabindex="-1"></a>both_pops <span class="ot">&lt;-</span> target_pops <span class="sc">%&gt;%</span></span>
+<span id="cb3-115"><a href="#cb3-115" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(base_pops) <span class="sc">%&gt;%</span></span>
+<span id="cb3-116"><a href="#cb3-116" aria-hidden="true" tabindex="-1"></a>  <span class="do">##### FIX BAD FID_IID SPLIT #####</span></span>
+<span id="cb3-117"><a href="#cb3-117" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unite</span>(<span class="st">"FIDIID"</span>, FID, IID, <span class="at">sep =</span> <span class="st">"_"</span>, <span class="at">remove =</span> F)</span>
+<span id="cb3-118"><a href="#cb3-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-119"><a href="#cb3-119" aria-hidden="true" tabindex="-1"></a>pca_corrected <span class="ot">&lt;-</span> pca_fidiid <span class="sc">%&gt;%</span></span>
+<span id="cb3-120"><a href="#cb3-120" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(both_pops, <span class="at">by =</span> <span class="st">"FIDIID"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-121"><a href="#cb3-121" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">any_of</span>(<span class="fu">names</span>(both_pops)), <span class="fu">everything</span>(), <span class="sc">-</span>FIDIID) <span class="sc">%&gt;%</span></span>
+<span id="cb3-122"><a href="#cb3-122" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">FID =</span> <span class="fu">str_remove</span>(FID, <span class="st">"^1000g___"</span>))</span>
+<span id="cb3-123"><a href="#cb3-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-124"><a href="#cb3-124" aria-hidden="true" tabindex="-1"></a><span class="do">## Colours for plots</span></span>
+<span id="cb3-125"><a href="#cb3-125" aria-hidden="true" tabindex="-1"></a>pca_col <span class="ot">&lt;-</span> pca_corrected <span class="sc">%&gt;%</span></span>
+<span id="cb3-126"><a href="#cb3-126" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(superpop) <span class="sc">%&gt;%</span></span>
+<span id="cb3-127"><a href="#cb3-127" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> sample_s, <span class="st">"black"</span>, <span class="cn">NA</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-128"><a href="#cb3-128" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> <span class="st">"AFR"</span>, <span class="st">"#E69F00"</span>, color)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-129"><a href="#cb3-129" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> <span class="st">"AMR"</span>, <span class="st">"#0072B2"</span>, color)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-130"><a href="#cb3-130" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> <span class="st">"EAS"</span>, <span class="st">"#009E73"</span>, color)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-131"><a href="#cb3-131" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> <span class="st">"EUR"</span>, <span class="st">"#CC79A7"</span>, color)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-132"><a href="#cb3-132" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> <span class="st">"NFE"</span>, <span class="st">"#CC79A7"</span>, color)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-133"><a href="#cb3-133" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> <span class="st">"FIN"</span>, <span class="st">"#960018"</span>, color)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-134"><a href="#cb3-134" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> <span class="st">"SAS"</span>, <span class="st">"#D55E00"</span>, color)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-135"><a href="#cb3-135" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> <span class="st">"MID"</span>, <span class="st">"#56B4E9"</span>, color)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-136"><a href="#cb3-136" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color =</span> <span class="fu">ifelse</span>(superpop <span class="sc">==</span> <span class="st">"AMI"</span>, <span class="st">"#F0E442"</span>, color)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-137"><a href="#cb3-137" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_row</span>(</span>
+<span id="cb3-138"><a href="#cb3-138" aria-hidden="true" tabindex="-1"></a>    <span class="at">superpop =</span> <span class="fu">c</span>(<span class="st">"Black"</span>, <span class="st">"Hispanic"</span>, <span class="st">"NHW"</span>), </span>
+<span id="cb3-139"><a href="#cb3-139" aria-hidden="true" tabindex="-1"></a>    <span class="at">n =</span> <span class="dv">0</span>, </span>
+<span id="cb3-140"><a href="#cb3-140" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="fu">c</span>(<span class="st">"#E69F00"</span>, <span class="st">"#0072B2"</span>, <span class="st">"#CC79A7"</span>)</span>
+<span id="cb3-141"><a href="#cb3-141" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb3-142"><a href="#cb3-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-143"><a href="#cb3-143" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-144"><a href="#cb3-144" aria-hidden="true" tabindex="-1"></a><span class="co"># Pull out 1000 genomes samples</span></span>
+<span id="cb3-145"><a href="#cb3-145" aria-hidden="true" tabindex="-1"></a>kg <span class="ot">&lt;-</span> <span class="fu">filter</span>(pca_corrected, cohort <span class="sc">==</span> <span class="st">"Reference"</span>)</span>
+<span id="cb3-146"><a href="#cb3-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-147"><a href="#cb3-147" aria-hidden="true" tabindex="-1"></a><span class="co"># find geometric median of each PC for each cluster</span></span>
+<span id="cb3-148"><a href="#cb3-148" aria-hidden="true" tabindex="-1"></a>clusters <span class="ot">&lt;-</span></span>
+<span id="cb3-149"><a href="#cb3-149" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(kg, <span class="fu">starts_with</span>(<span class="st">"PC"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-150"><a href="#cb3-150" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geometric_median</span>(<span class="at">by_grp =</span> kg<span class="sc">$</span>superpop) <span class="sc">%&gt;%</span></span>
+<span id="cb3-151"><a href="#cb3-151" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>(<span class="at">rownames =</span> <span class="st">"superpop"</span>)</span>
+<span id="cb3-152"><a href="#cb3-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-153"><a href="#cb3-153" aria-hidden="true" tabindex="-1"></a><span class="co"># extract sample information and assign to cluster</span></span>
+<span id="cb3-154"><a href="#cb3-154" aria-hidden="true" tabindex="-1"></a>pca <span class="ot">&lt;-</span> pca_corrected <span class="sc">%&gt;%</span></span>
+<span id="cb3-155"><a href="#cb3-155" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_split</span>(IID) <span class="sc">%&gt;%</span></span>
+<span id="cb3-156"><a href="#cb3-156" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map_df</span>(find_cluster, clusters)</span>
+<span id="cb3-157"><a href="#cb3-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-158"><a href="#cb3-158" aria-hidden="true" tabindex="-1"></a><span class="co"># Export PCA </span></span>
+<span id="cb3-159"><a href="#cb3-159" aria-hidden="true" tabindex="-1"></a><span class="fu">write_tsv</span>(pca, pcs_out_path)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Now we can visualize the PCA to see how HABS-HD clusters with 1KG</p>
+<div class="cell">
+<details>
+<summary>Visualize 1KG + HABS-HD</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>color_vector <span class="ot">&lt;-</span> <span class="fu">setNames</span>(pca_col<span class="sc">$</span>color, pca_col<span class="sc">$</span>superpop)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># PC1 x PC2</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>ga_pc1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span>  </span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> <span class="fu">filter</span>(pca, cohort <span class="sc">==</span> <span class="st">'Reference'</span>), </span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>             <span class="fu">aes</span>(<span class="at">x =</span> PC1, <span class="at">y =</span> PC2, <span class="at">color =</span> superpop), <span class="at">shape =</span> <span class="dv">15</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span> </span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> <span class="fu">filter</span>(pca, cohort <span class="sc">==</span> <span class="st">'HABS-HD'</span>), </span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>             <span class="fu">aes</span>(<span class="at">x =</span> PC1, <span class="at">y =</span> PC2, <span class="at">color =</span> superpop), <span class="at">size =</span> <span class="fl">0.75</span>) <span class="sc">+</span> </span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> color_vector) <span class="sc">+</span> </span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co"># PC3 x PC4</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>ga_pc3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span>  </span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> <span class="fu">filter</span>(pca, cohort <span class="sc">==</span> <span class="st">'Reference'</span>), </span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>             <span class="fu">aes</span>(<span class="at">x =</span> PC3, <span class="at">y =</span> PC4, <span class="at">color =</span> superpop), <span class="at">shape =</span> <span class="dv">15</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span> </span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> <span class="fu">filter</span>(pca, cohort <span class="sc">==</span> <span class="st">'HABS-HD'</span>), </span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>             <span class="fu">aes</span>(<span class="at">x =</span> PC3, <span class="at">y =</span> PC4, <span class="at">color =</span> superpop), <span class="at">size =</span> <span class="fl">0.75</span>) <span class="sc">+</span> </span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> color_vector) <span class="sc">+</span> </span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>cowplot<span class="sc">::</span><span class="fu">plot_grid</span>(</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  ga_pc1, ga_pc3, </span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Lets join with the phenotype data to compare ancestry and race</p>
+<div class="cell">
+<details>
+<summary>Visualize HABS-HD</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>pca_pheno <span class="ot">&lt;-</span> pca <span class="sc">%&gt;%</span> </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(cohort <span class="sc">==</span> <span class="st">"HABS-HD"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">IID =</span> <span class="fu">as.numeric</span>(IID)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(<span class="fu">read_csv</span>(<span class="st">'work/habshd_pheno.csv'</span>), <span class="at">by =</span> <span class="fu">c</span>(<span class="st">'IID'</span> <span class="ot">=</span> <span class="st">'med_id'</span>))</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"># PC1 x PC2</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>habshd_ga <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(pca_pheno, <span class="fu">aes</span>(<span class="at">x =</span> PC1, <span class="at">y =</span> PC2, <span class="at">color =</span> superpop_infered)) <span class="sc">+</span>  </span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> color_vector) <span class="sc">+</span> </span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span> </span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Genetic Ancestry"</span>)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co"># PC1 x PC2</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>habshd_race <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(pca_pheno, <span class="fu">aes</span>(<span class="at">x =</span> PC1, <span class="at">y =</span> PC2, <span class="at">color =</span> race)) <span class="sc">+</span>  </span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> color_vector) <span class="sc">+</span> </span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span> </span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Race"</span>)</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>cowplot<span class="sc">::</span><span class="fu">plot_grid</span>(</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  habshd_ga, habshd_race</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 </section>
 <section id="admixture" class="level2">
 <h2 class="anchored" data-anchor-id="admixture">ADMIXTURE</h2>
-<p>TBD</p>
+<section id="reference-processing" class="level3">
+<h3 class="anchored" data-anchor-id="reference-processing">Reference Processing</h3>
+<p>To prepare the gnomAD reference, we did the following:</p>
+<ul>
+<li>Remove samples without a population inference from gnomAD or without high_quality set to TRUE.</li>
+<li>Make a column (<code>spop</code>) by doing the following with the populations inferred by gnomAD:
+<ul>
+<li>Merge “nfe” and “fin” into “EUR”</li>
+<li>Move oceanic subjects from “oth” to their own “OCE” category.</li>
+<li>Capitalize all other superpopulations.</li>
+</ul></li>
+<li>Make a column (<code>spop_checked</code>) where the original superpopulations match the inferred superpopulations:
+<ul>
+<li>The new <code>spop</code> column is used for inferred superpopulation.</li>
+<li>The <code>genetic_region</code> column is used for original superpopulation.</li>
+<li>“CSA” in <code>genetic_region</code> is considered a match to “SAS” in <code>spop</code>. “SAS” is used in the new column.</li>
+<li>All subjects where there is no match are set to “NA”</li>
+</ul></li>
+</ul>
+</section>
+<section id="admixture-procedure" class="level3">
+<h3 class="anchored" data-anchor-id="admixture-procedure">ADMIXTURE Procedure</h3>
+<p>The following steps are used to generate Global Ancestry Inference (GAI) estimates:</p>
+<ol type="1">
+<li>Process the reference label data as described above.</li>
+<li>Obtain the intersection of the reference and target varients, then prune the reference with a 100kb window and R^2 of 0.1.</li>
+<li>Restrict sample genotypes to those present in the pruned reference, then merge with the reference samples. Check that the <code>.bim</code> files are identical.</li>
+<li>Run unsupervised ADMIXTURE with K = 12 on the reference dataset.</li>
+<li>Run ADMIXTURE projection on the merged reference and target samples.</li>
+<li>Read in the processed reference labels, ADMIXTURE cluster estimates (Q files), and PLINK <code>.fam</code> files.</li>
+<li>Merge the reference labels with the ADMIXTURE cluster estimates and extract the reference samples for labeling, excluding Middle Eastern reference samples.</li>
+<li>Label the clusters by assigning to each cluster the superpopulation with the highest average proportion within that cluster. The checked superpopulation labels are used for this labeling process.</li>
+<li>Using the cluster labels, calculate GAI proportions and maximum superpopulation for all samples.</li>
+<li>Visualize below.</li>
+</ol>
+<p>We can execute ADMIXTURE using the code below; however, it requires approximately 24 hours of compute time. We have determined that K=12 is the optimal number of ancestral populations for 1KG + HGDP datasets. Our goal is to project the HABS-HD samples onto this reference dataset. This will produce <code>.Q</code> and <code>.P</code> file that contain the estimated ancestry fractions for each individual across the inferred populations and the allele frequencies for each population respectivly.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admixture</span> <span class="at">-P</span> <span class="at">-s</span> 42 habshd_merged_gnomad-hgdp-1kg.hg38.bed 12 <span class="at">-j1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admixture</span> <span class="at">-P</span> <span class="at">-s</span> 42 habshd_merged_gnomad-hgdp-1kg.hg38.bed 12 <span class="at">-j1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Lets visualize the global ancestry of the HABS-HD dataset. Make sure the following files are in your <code>work</code> directory.</p>
+<ul>
+<li><code>work/gnomad-hgdp-1kg_pruned_habshd.hg38.fam</code></li>
+<li><code>work/habshd_merged_gnomad-hgdp-1kg.hg38.12.Q</code></li>
+<li><code>work/habshd_merged_gnomad-hgdp-1kg.hg38.fam</code></li>
+<li><code>work/hgdp_1kg.popdata.tsv.gz</code></li>
+</ul>
+<div class="cell">
+<details>
+<summary>ADMIXTURE Packages</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>(<span class="fu">library</span>(dplyr))</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details>
+<summary>Import ADMIXTURE</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Input and output files</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>in_fam_ref <span class="ot">&lt;-</span> <span class="st">'work/gnomad-hgdp-1kg_pruned_habshd.hg38.fam'</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>in_q_samp <span class="ot">&lt;-</span> <span class="st">'work/habshd_merged_gnomad-hgdp-1kg.hg38.12.Q'</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>in_fam_samp <span class="ot">&lt;-</span> <span class="st">'work/habshd_merged_gnomad-hgdp-1kg.hg38.fam'</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>in_pops <span class="ot">&lt;-</span> <span class="st">'work/hgdp_1kg.popdata.tsv.gz'</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>out_anc <span class="ot">&lt;-</span> <span class="st">'work/admixture_cohort-habshd_ref-gnomad-hgdp-1kg.hg38.tsv'</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Fam and popfiles</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="do">## ======================================##</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="fu">message</span>(<span class="st">"Reading pop file </span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>pops <span class="ot">&lt;-</span> in_pops <span class="sc">|&gt;</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">read_tsv</span>(<span class="at">col_types =</span> <span class="fu">cols</span>(<span class="at">.default =</span> <span class="st">"c"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">ID =</span> IID)</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="fu">message</span>(<span class="st">"Reading fam files </span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>read_fam <span class="ot">&lt;-</span> <span class="cf">function</span>(in_fam) {</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>  in_fam <span class="sc">|&gt;</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">read_table</span>(<span class="at">col_names =</span> <span class="fu">c</span>(<span class="st">"ID"</span>), <span class="at">col_types =</span> <span class="st">"-c----"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">order =</span> <span class="fu">row_number</span>())</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>famfile_ref <span class="ot">&lt;-</span> <span class="fu">read_fam</span>(in_fam_ref) <span class="sc">|&gt;</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">partition =</span> <span class="st">"reference"</span>)</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>famfile_samp <span class="ot">&lt;-</span> <span class="fu">read_fam</span>(in_fam_samp) <span class="sc">|&gt;</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">partition =</span> <span class="st">"sample"</span>)</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>famfile <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(famfile_ref, famfile_samp)</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Interpreting unsupervised admixture output #</span></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a><span class="do">## ======================================##</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a><span class="fu">message</span>(<span class="st">"Reading unsupervised admixture output </span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>read_q <span class="ot">&lt;-</span> <span class="cf">function</span>(in_q, fam) {</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>  in_q <span class="sc">|&gt;</span></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>    <span class="fu">read_table</span>(<span class="at">col_names =</span> <span class="cn">FALSE</span>, <span class="at">col_types =</span> <span class="fu">cols</span>(<span class="at">.default =</span> <span class="st">"d"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bind_cols</span>(fam) <span class="sc">|&gt;</span></span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rename_with</span>(<span class="sc">~</span> <span class="fu">str_replace</span>(.x, <span class="st">"^X"</span>, <span class="st">"k"</span>))</span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>tbl_admix_samp <span class="ot">&lt;-</span> <span class="fu">read_q</span>(in_q_samp, famfile_samp)</span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>overlap <span class="ot">&lt;-</span> <span class="fu">intersect</span>(famfile_ref<span class="sc">$</span>ID, tbl_admix_samp<span class="sc">$</span>ID)</span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(overlap) <span class="sc">==</span> <span class="fu">nrow</span>(famfile_ref)) {</span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>  tbl_admix <span class="ot">&lt;-</span> tbl_admix_samp <span class="sc">|&gt;</span></span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(pops, <span class="at">by =</span> <span class="st">"ID"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">partition =</span> <span class="fu">ifelse</span>(ID <span class="sc">%in%</span> famfile_ref<span class="sc">$</span>ID, <span class="st">"reference"</span>, partition))</span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>  tbl_admix_ref <span class="ot">&lt;-</span> tbl_admix <span class="sc">|&gt;</span></span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(ID <span class="sc">%in%</span> famfile_ref<span class="sc">$</span>ID) <span class="sc">|&gt;</span></span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">FID =</span> <span class="st">"reference"</span>)</span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>  tbl_admix_samp <span class="ot">&lt;-</span> tbl_admix <span class="sc">|&gt;</span></span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span>(ID <span class="sc">%in%</span> tbl_admix_ref<span class="sc">$</span>ID))</span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> <span class="cf">if</span> (<span class="fu">length</span>(overlap) <span class="sc">!=</span> <span class="dv">0</span>) {</span>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stop</span>(<span class="st">"Missing reference samples"</span>)</span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a>  tbl_admix_ref <span class="ot">&lt;-</span> <span class="fu">read_q</span>(in_q_ref, famfile_ref)</span>
+<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a>  tbl_admix_ref <span class="ot">&lt;-</span> tbl_admix_ref <span class="sc">|&gt;</span></span>
+<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(pops, <span class="at">by =</span> <span class="st">"ID"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">FID =</span> <span class="st">"reference"</span>)</span>
+<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a>  tbl_admix <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(tbl_admix_ref, tbl_admix_samp)</span>
+<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a><span class="co"># Determining cluster labels</span></span>
+<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-64"><a href="#cb8-64" aria-hidden="true" tabindex="-1"></a>cluster_cols <span class="ot">&lt;-</span> <span class="fu">names</span>(tbl_admix)[<span class="fu">str_detect</span>(<span class="fu">names</span>(tbl_admix), <span class="st">"^k</span><span class="sc">\\</span><span class="st">d+$"</span>)]</span>
+<span id="cb8-65"><a href="#cb8-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-66"><a href="#cb8-66" aria-hidden="true" tabindex="-1"></a>assign_labels <span class="ot">&lt;-</span> <span class="cf">function</span>(tbl_admix) {</span>
+<span id="cb8-67"><a href="#cb8-67" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="st">"spop_checked"</span> <span class="sc">%in%</span> <span class="fu">colnames</span>(tbl_admix)) {</span>
+<span id="cb8-68"><a href="#cb8-68" aria-hidden="true" tabindex="-1"></a>    assign_admix_raw <span class="ot">&lt;-</span> tbl_admix <span class="sc">|&gt;</span></span>
+<span id="cb8-69"><a href="#cb8-69" aria-hidden="true" tabindex="-1"></a>      <span class="fu">select</span>(<span class="fu">any_of</span>(<span class="fu">c</span>(<span class="st">"FID"</span>, <span class="st">"IID"</span>, <span class="st">"ID"</span>)),</span>
+<span id="cb8-70"><a href="#cb8-70" aria-hidden="true" tabindex="-1"></a>        <span class="at">spop =</span> spop_checked, <span class="fu">matches</span>(<span class="st">"^k</span><span class="sc">\\</span><span class="st">d+$"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb8-71"><a href="#cb8-71" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(spop <span class="sc">!=</span> <span class="st">"MID"</span>) <span class="sc">|&gt;</span> <span class="co"># remove middle eastern from assignment</span></span>
+<span id="cb8-72"><a href="#cb8-72" aria-hidden="true" tabindex="-1"></a>      <span class="fu">group_by</span>(spop) <span class="sc">|&gt;</span></span>
+<span id="cb8-73"><a href="#cb8-73" aria-hidden="true" tabindex="-1"></a>      <span class="fu">summarise</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), mean)) <span class="sc">|&gt;</span></span>
+<span id="cb8-74"><a href="#cb8-74" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(spop))</span>
+<span id="cb8-75"><a href="#cb8-75" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb8-76"><a href="#cb8-76" aria-hidden="true" tabindex="-1"></a>    assign_admix_raw <span class="ot">&lt;-</span> tbl_admix <span class="sc">|&gt;</span></span>
+<span id="cb8-77"><a href="#cb8-77" aria-hidden="true" tabindex="-1"></a>      <span class="fu">group_by</span>(spop) <span class="sc">|&gt;</span></span>
+<span id="cb8-78"><a href="#cb8-78" aria-hidden="true" tabindex="-1"></a>      <span class="fu">summarise</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), mean)) <span class="sc">|&gt;</span></span>
+<span id="cb8-79"><a href="#cb8-79" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(spop))</span>
+<span id="cb8-80"><a href="#cb8-80" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb8-81"><a href="#cb8-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-82"><a href="#cb8-82" aria-hidden="true" tabindex="-1"></a>  assign_admix_mat <span class="ot">&lt;-</span> assign_admix_raw <span class="sc">|&gt;</span></span>
+<span id="cb8-83"><a href="#cb8-83" aria-hidden="true" tabindex="-1"></a>    <span class="fu">column_to_rownames</span>(<span class="at">var =</span> <span class="st">"spop"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-84"><a href="#cb8-84" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.matrix</span>()</span>
+<span id="cb8-85"><a href="#cb8-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-86"><a href="#cb8-86" aria-hidden="true" tabindex="-1"></a>  assign_admix <span class="ot">&lt;-</span> assign_admix_mat <span class="sc">|&gt;</span></span>
+<span id="cb8-87"><a href="#cb8-87" aria-hidden="true" tabindex="-1"></a>    <span class="fu">t</span>() <span class="sc">|&gt;</span></span>
+<span id="cb8-88"><a href="#cb8-88" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
+<span id="cb8-89"><a href="#cb8-89" aria-hidden="true" tabindex="-1"></a>    (\(.) <span class="fu">mutate</span>(., <span class="at">anc =</span> <span class="fu">colnames</span>(.)[<span class="fu">apply</span>(., <span class="dv">1</span>, which.max)]))() <span class="sc">|&gt;</span></span>
+<span id="cb8-90"><a href="#cb8-90" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as_tibble</span>(<span class="at">rownames =</span> <span class="st">"cluster"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-91"><a href="#cb8-91" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rowwise</span>() <span class="sc">|&gt;</span></span>
+<span id="cb8-92"><a href="#cb8-92" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">maxval =</span> <span class="fu">max</span>(<span class="fu">c_across</span>(<span class="fu">where</span>(is.numeric)))) <span class="sc">|&gt;</span></span>
+<span id="cb8-93"><a href="#cb8-93" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(anc) <span class="sc">|&gt;</span></span>
+<span id="cb8-94"><a href="#cb8-94" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(<span class="sc">-</span>maxval) <span class="sc">|&gt;</span></span>
+<span id="cb8-95"><a href="#cb8-95" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">n =</span> <span class="fu">n</span>(),</span>
+<span id="cb8-96"><a href="#cb8-96" aria-hidden="true" tabindex="-1"></a>           <span class="at">cname =</span> <span class="fu">ifelse</span>(n <span class="sc">&gt;</span> <span class="dv">1</span>, <span class="fu">paste</span>(anc, <span class="fu">row_number</span>(), <span class="at">sep =</span> <span class="st">"_"</span>), anc)) <span class="sc">|&gt;</span></span>
+<span id="cb8-97"><a href="#cb8-97" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
+<span id="cb8-98"><a href="#cb8-98" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">-</span>maxval, <span class="sc">-</span>n) <span class="sc">|&gt;</span></span>
+<span id="cb8-99"><a href="#cb8-99" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(cname) <span class="sc">|&gt;</span></span>
+<span id="cb8-100"><a href="#cb8-100" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(cname, cluster, anc, <span class="fu">everything</span>())</span>
+<span id="cb8-101"><a href="#cb8-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-102"><a href="#cb8-102" aria-hidden="true" tabindex="-1"></a>  assign_cname_vec <span class="ot">&lt;-</span> <span class="fu">pull</span>(assign_admix, cname, cluster)</span>
+<span id="cb8-103"><a href="#cb8-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-104"><a href="#cb8-104" aria-hidden="true" tabindex="-1"></a>  heatmap_names <span class="ot">&lt;-</span> <span class="fu">colnames</span>(assign_admix_mat) <span class="sc">|&gt;</span></span>
+<span id="cb8-105"><a href="#cb8-105" aria-hidden="true" tabindex="-1"></a>    (\(x) <span class="fu">sprintf</span>(<span class="st">"%s (%s)"</span>, assign_cname_vec[x], x))()</span>
+<span id="cb8-106"><a href="#cb8-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-107"><a href="#cb8-107" aria-hidden="true" tabindex="-1"></a>  heatmap_mat <span class="ot">&lt;-</span> assign_admix_mat</span>
+<span id="cb8-108"><a href="#cb8-108" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>(heatmap_mat) <span class="ot">&lt;-</span> heatmap_names</span>
+<span id="cb8-109"><a href="#cb8-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-110"><a href="#cb8-110" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">assign =</span> assign_admix,</span>
+<span id="cb8-111"><a href="#cb8-111" aria-hidden="true" tabindex="-1"></a>              <span class="at">heatmap =</span> heatmap_mat,</span>
+<span id="cb8-112"><a href="#cb8-112" aria-hidden="true" tabindex="-1"></a>              <span class="at">assign_cname_vec =</span> assign_cname_vec))</span>
+<span id="cb8-113"><a href="#cb8-113" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-114"><a href="#cb8-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-115"><a href="#cb8-115" aria-hidden="true" tabindex="-1"></a>admix_labs <span class="ot">&lt;-</span> <span class="fu">assign_labels</span>(tbl_admix)</span>
+<span id="cb8-116"><a href="#cb8-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-117"><a href="#cb8-117" aria-hidden="true" tabindex="-1"></a>assign_admix <span class="ot">&lt;-</span> admix_labs<span class="sc">$</span>assign</span>
+<span id="cb8-118"><a href="#cb8-118" aria-hidden="true" tabindex="-1"></a>heatmap_mat <span class="ot">&lt;-</span> admix_labs<span class="sc">$</span>heatmap</span>
+<span id="cb8-119"><a href="#cb8-119" aria-hidden="true" tabindex="-1"></a>assign_cname_vec <span class="ot">&lt;-</span> admix_labs<span class="sc">$</span>assign_cname_vec</span>
+<span id="cb8-120"><a href="#cb8-120" aria-hidden="true" tabindex="-1"></a>assign_super_vec <span class="ot">&lt;-</span> <span class="fu">pull</span>(assign_admix, anc, cluster)</span>
+<span id="cb8-121"><a href="#cb8-121" aria-hidden="true" tabindex="-1"></a>assign_cname_vec_i <span class="ot">&lt;-</span> <span class="fu">pull</span>(assign_admix, cluster, cname)</span>
+<span id="cb8-122"><a href="#cb8-122" aria-hidden="true" tabindex="-1"></a>superpops <span class="ot">&lt;-</span> <span class="fu">rownames</span>(heatmap_mat)</span>
+<span id="cb8-123"><a href="#cb8-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-124"><a href="#cb8-124" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(admix_labs, assign_labels)</span>
+<span id="cb8-125"><a href="#cb8-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-126"><a href="#cb8-126" aria-hidden="true" tabindex="-1"></a><span class="co"># Assign individuals</span></span>
+<span id="cb8-127"><a href="#cb8-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-128"><a href="#cb8-128" aria-hidden="true" tabindex="-1"></a>collapse_superpop <span class="ot">&lt;-</span> <span class="cf">function</span>(df, sp) {</span>
+<span id="cb8-129"><a href="#cb8-129" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Add overall proportion of each superpop, collapsing clusters</span></span>
+<span id="cb8-130"><a href="#cb8-130" aria-hidden="true" tabindex="-1"></a>  get_clusters <span class="ot">&lt;-</span> \(spop) <span class="fu">names</span>(assign_super_vec[assign_super_vec <span class="sc">==</span> spop])</span>
+<span id="cb8-131"><a href="#cb8-131" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(df, <span class="sc">!!</span><span class="at">sp :=</span> <span class="fu">rowSums</span>(<span class="fu">across</span>(<span class="fu">all_of</span>(<span class="fu">get_clusters</span>(sp)))))</span>
+<span id="cb8-132"><a href="#cb8-132" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-133"><a href="#cb8-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-134"><a href="#cb8-134" aria-hidden="true" tabindex="-1"></a>tbl_admix_collapsed <span class="ot">&lt;-</span> tbl_admix</span>
+<span id="cb8-135"><a href="#cb8-135" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (sp <span class="cf">in</span> superpops) {</span>
+<span id="cb8-136"><a href="#cb8-136" aria-hidden="true" tabindex="-1"></a>  tbl_admix_collapsed <span class="ot">&lt;-</span> <span class="fu">collapse_superpop</span>(tbl_admix_collapsed, sp)</span>
+<span id="cb8-137"><a href="#cb8-137" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-138"><a href="#cb8-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-139"><a href="#cb8-139" aria-hidden="true" tabindex="-1"></a>tbl_admix_inf <span class="ot">&lt;-</span> tbl_admix_collapsed <span class="sc">|&gt;</span></span>
+<span id="cb8-140"><a href="#cb8-140" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowwise</span>(ID) <span class="sc">|&gt;</span></span>
+<span id="cb8-141"><a href="#cb8-141" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">maxval =</span> <span class="fu">max</span>(<span class="fu">c_across</span>(<span class="fu">all_of</span>(cluster_cols))),</span>
+<span id="cb8-142"><a href="#cb8-142" aria-hidden="true" tabindex="-1"></a>         <span class="at">matchval =</span> <span class="fu">which.max</span>(<span class="fu">c_across</span>(<span class="fu">all_of</span>(cluster_cols))),</span>
+<span id="cb8-143"><a href="#cb8-143" aria-hidden="true" tabindex="-1"></a>         <span class="at">max_spop_prop =</span> <span class="fu">max</span>(<span class="fu">c_across</span>(<span class="fu">all_of</span>(superpops)))) <span class="sc">|&gt;</span></span>
+<span id="cb8-144"><a href="#cb8-144" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
+<span id="cb8-145"><a href="#cb8-145" aria-hidden="true" tabindex="-1"></a>  (\(.) <span class="fu">mutate</span>(.,</span>
+<span id="cb8-146"><a href="#cb8-146" aria-hidden="true" tabindex="-1"></a>    <span class="at">maxclust =</span> <span class="fu">colnames</span>(.)[<span class="fu">max.col</span>(<span class="fu">select</span>(., <span class="fu">matches</span>(<span class="st">"^k</span><span class="sc">\\</span><span class="st">d+$"</span>)))],</span>
+<span id="cb8-147"><a href="#cb8-147" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Maximum Cluster"</span> <span class="ot">=</span> <span class="fu">unname</span>(assign_cname_vec[maxclust]),</span>
+<span id="cb8-148"><a href="#cb8-148" aria-hidden="true" tabindex="-1"></a>    <span class="at">admixture_super_pop_max =</span> <span class="fu">map_chr</span>(maxclust, \(x) assign_super_vec[[x]]),</span>
+<span id="cb8-149"><a href="#cb8-149" aria-hidden="true" tabindex="-1"></a>    <span class="at">admixture_cluster_max =</span> <span class="fu">map_chr</span>(maxclust, \(x) assign_cname_vec[[x]])))() <span class="sc">|&gt;</span></span>
+<span id="cb8-150"><a href="#cb8-150" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(spop, admixture_super_pop_max, matchval, <span class="sc">-</span>maxval) <span class="sc">|&gt;</span></span>
+<span id="cb8-151"><a href="#cb8-151" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb8-152"><a href="#cb8-152" aria-hidden="true" tabindex="-1"></a>    <span class="at">pop =</span> forcats<span class="sc">::</span><span class="fu">fct_inorder</span>(pop),</span>
+<span id="cb8-153"><a href="#cb8-153" aria-hidden="true" tabindex="-1"></a>    <span class="at">spop =</span> forcats<span class="sc">::</span><span class="fu">fct_inorder</span>(spop),</span>
+<span id="cb8-154"><a href="#cb8-154" aria-hidden="true" tabindex="-1"></a>    <span class="at">admixture_super_pop_max =</span> <span class="fu">factor</span>(</span>
+<span id="cb8-155"><a href="#cb8-155" aria-hidden="true" tabindex="-1"></a>      admixture_super_pop_max, <span class="at">levels =</span> <span class="fu">levels</span>(spop))) <span class="sc">|&gt;</span></span>
+<span id="cb8-156"><a href="#cb8-156" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(matchval, <span class="sc">-</span>maxval) <span class="sc">|&gt;</span></span>
+<span id="cb8-157"><a href="#cb8-157" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">ID =</span> forcats<span class="sc">::</span><span class="fu">fct_inorder</span>(ID))</span>
+<span id="cb8-158"><a href="#cb8-158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-159"><a href="#cb8-159" aria-hidden="true" tabindex="-1"></a>out_admix <span class="ot">&lt;-</span> tbl_admix_inf <span class="sc">|&gt;</span></span>
+<span id="cb8-160"><a href="#cb8-160" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>maxval, <span class="sc">-</span>matchval, <span class="sc">-</span>maxclust) <span class="sc">|&gt;</span></span>
+<span id="cb8-161"><a href="#cb8-161" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">any_of</span>(<span class="fu">c</span>(<span class="st">"FID"</span>, <span class="st">"IID"</span>, <span class="st">"ID"</span>)),</span>
+<span id="cb8-162"><a href="#cb8-162" aria-hidden="true" tabindex="-1"></a>    <span class="fu">all_of</span>(superpops), <span class="fu">matches</span>(<span class="st">"^k</span><span class="sc">\\</span><span class="st">d+$"</span>),</span>
+<span id="cb8-163"><a href="#cb8-163" aria-hidden="true" tabindex="-1"></a>    <span class="fu">everything</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb8-164"><a href="#cb8-164" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(pop) <span class="sc">|</span> partition <span class="sc">==</span> <span class="st">"sample"</span>)</span>
+<span id="cb8-165"><a href="#cb8-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-166"><a href="#cb8-166" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter samples</span></span>
+<span id="cb8-167"><a href="#cb8-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-168"><a href="#cb8-168" aria-hidden="true" tabindex="-1"></a>out_admix <span class="sc">|&gt;</span></span>
+<span id="cb8-169"><a href="#cb8-169" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(partition), admixture_super_pop_max) <span class="sc">|&gt;</span></span>
+<span id="cb8-170"><a href="#cb8-170" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fix_famfile</span>() <span class="sc">|&gt;</span></span>
+<span id="cb8-171"><a href="#cb8-171" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">any_of</span>(<span class="fu">c</span>(<span class="st">"FID"</span>, <span class="st">"IID"</span>, <span class="st">"ID"</span>)), partition, admixture_cluster_max,</span>
+<span id="cb8-172"><a href="#cb8-172" aria-hidden="true" tabindex="-1"></a>         admixture_super_pop_max, max_spop_prop, <span class="fu">everything</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb8-173"><a href="#cb8-173" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="st">`</span><span class="at">Maximum Cluster</span><span class="st">`</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-174"><a href="#cb8-174" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename_with</span>(<span class="sc">~</span> <span class="fu">paste0</span>(<span class="st">"k_"</span>, assign_cname_vec[.x]), <span class="fu">matches</span>(<span class="st">"^k</span><span class="sc">\\</span><span class="st">d+$"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb8-175"><a href="#cb8-175" aria-hidden="true" tabindex="-1"></a>  <span class="fu">write_tsv</span>(out_anc)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>And now we can visualize the global ancestry.</p>
+<div class="cell">
+<details>
+<summary>Plot Admixture</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>tbl_use <span class="ot">&lt;-</span>  out_admix <span class="sc">%&gt;%</span> </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(partition <span class="sc">==</span> <span class="st">"sample"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">all_of</span>(<span class="fu">c</span>(<span class="st">'AFR'</span>, <span class="st">'AMR'</span>, <span class="st">'EAS'</span>, <span class="st">'EUR'</span>, <span class="st">'OCE'</span>, <span class="st">'SAS'</span>)), <span class="at">names_to =</span> <span class="st">"Cluster"</span>, <span class="at">values_to =</span> <span class="st">"prop"</span> ) <span class="sc">|&gt;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">spop =</span> <span class="fu">ifelse</span>(genetic_region <span class="sc">==</span> <span class="st">"CSA"</span>, <span class="st">"SAS"</span>, genetic_region)) </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(tbl_use, <span class="fu">aes</span>(<span class="at">x =</span> ID, <span class="at">y =</span> prop, <span class="at">fill =</span> Cluster)) <span class="sc">+</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">"fill"</span>, <span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">width =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> color_vector) <span class="sc">+</span> </span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Individual"</span>, <span class="at">y =</span> <span class="st">"Global Ancestry"</span>, <span class="at">color =</span> <span class="st">"Cluster"</span>) <span class="sc">+</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.text.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.ticks.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.title.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">axis.title.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>      <span class="at">panel.grid.major.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>      <span class="at">strip.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">90</span>)) <span class="sc">+</span> </span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(<span class="sc">~</span> admixture_super_pop_max, <span class="at">switch =</span> <span class="st">"x"</span>,</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>                     <span class="at">scales =</span> <span class="st">"free"</span>, <span class="at">space =</span> <span class="st">"free"</span>)</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

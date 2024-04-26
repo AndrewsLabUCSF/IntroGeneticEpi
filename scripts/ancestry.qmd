@@ -7,15 +7,18 @@ editor_options:
 ---
 # Genetic Ancestry {.unnumbered}
 
-TBD
+Genetic ancestry plays a pivotal role in genome-wide association studies (GWAS), providing insights into the population-specific genetic variations that may contribute to disease phenotypes. Accurate assessment of ancestry allows for the control of population stratification, which can confound results if not properly accounted for. Principal Component Analysis (PCA) is commonly used to visualize and correct for ancestry-related differences by identifying axes of genetic variation. Additionally, understanding admixture improves our interpretation of genetic data, enabling more precise localization of disease-associated variants in diverse populations.
 
 ## Prinicpal Component Analysis 
 
-TBD
+PLINK enables us to conduct Principal Component Analysis (PCA) on genetic data. In this case, we have merged the HABS-HD dataset with the 1000 Genomes (1KG) dataset to initially derive principal components from the 1KG, which are then used to project the genetic data of the HABS-HD dataset onto. This will generate two files `work/imputed_1kG_merged.eigenvec` - the eigenvectors - and `work/imputed_1kG_merged.eigenval` the PCs. 
 
 ```{bash}
 #| eval: false
-#| label: PLINK PCA
+#| label: plink_pca
+#| code-summary: PLINK PCA
+#| code-fold: FALSE
+
 plink \
     --keep-allele-order \
     --bfile resources/genetic_epi/imputed_1kG_merged \
@@ -26,9 +29,13 @@ plink \
     --out work/imputed_1kG_merged
 ```
 
+To categorize HABS-HD samples into the closest 1KG superpopulation, we calculate the geometric median for each cluster, assess the Euclidean distance from each sample to these medians, and assign samples to the nearest cluster accordingly.
+
 ```{r}
 #| eval: false
-#| label: Pop Assignment
+#| label: Import Packages
+#| code-summary: Import Packges
+#| code-fold: TRUE
 
 #!/usr/bin/env Rscript
 
@@ -41,6 +48,7 @@ suppressPackageStartupMessages(library(tidyr))
 library(stringr)
 library(tibble)
 suppressPackageStartupMessages(library(purrr))
+library(ggplot)
 
 # Get geometric median
 ## rdocumentation.org/packages/bigutilsr/versions/0.3.3/topics/geometric_median
@@ -74,18 +82,27 @@ find_cluster <- function(df, clusters) {
   clus <- which.min(as.matrix(mat)[6, 1:5])
   dplyr::mutate(df, superpop_infered = superpops[clus])
 }
+```
+
+You will need to ensure the following files are in your `resources` and `work` directories. 
+
+```{r}
+#| eval: false
+#| label: Import Data
+#| code-summary: Import Data
+#| code-fold: TRUE
 
 vec <- 'work/imputed_1kG_merged.eigenvec'
 val <- 'work/imputed_1kG_merged.eigenval'
 base <- 'resources/genetic_epi/1kG_pops.txt'
 target <- 'work/habshd_sampleQC.fam'
-output <- snakemake@output[["excl"]]
-rmd <- snakemake@output[["rmd"]]
+# output <- snakemake@output[["excl"]]
+# rmd <- snakemake@output[["rmd"]]
 sample <- 'HABS-HD'
 population <- 'all'
-extraref <- snakemake@params[["extraref"]]
-sdev <- snakemake@params[["sd"]]
-pcs_out_path <- snakemake@output[["pcs_pops"]]
+# extraref <- snakemake@params[["extraref"]]
+# sdev <- snakemake@params[["sd"]]
+pcs_out_path <- 'work/habs_pca.tsv'
 tg_pops_file <- 'resources/genetic_epi/tg_subpops.tsv'
 
 
@@ -210,11 +227,13 @@ pca_col <- pca_corrected %>%
   mutate(color = ifelse(superpop == "FIN", "#960018", color)) %>%
   mutate(color = ifelse(superpop == "SAS", "#D55E00", color)) %>%
   mutate(color = ifelse(superpop == "MID", "#56B4E9", color)) %>%
-  mutate(color = ifelse(superpop == "AMI", "#F0E442", color))
+  mutate(color = ifelse(superpop == "AMI", "#F0E442", color)) %>%
+  add_row(
+    superpop = c("Black", "Hispanic", "NHW"), 
+    n = 0, 
+    color = c("#E69F00", "#0072B2", "#CC79A7")
+  )
 
-# ternary plot and assignment:
-
-message("Ternary Plots")
 
 # Pull out 1000 genomes samples
 kg <- filter(pca_corrected, cohort == "Reference")
@@ -230,105 +249,112 @@ pca <- pca_corrected %>%
   group_split(IID) %>%
   map_df(find_cluster, clusters)
 
+# Export PCA 
 write_tsv(pca, pcs_out_path)
 
-report_settings <- list(
-  all_pops = all_pops,
-  filter_inference = F,
-  filter_sd = F
+
+```
+
+Now we can visualize the PCA to see how HABS-HD clusters with 1KG
+
+```{r}
+#| eval: false
+#| label: 1KG PCA
+#| code-summary: Visualize 1KG + HABS-HD
+#| code-fold: TRUE
+
+color_vector <- setNames(pca_col$color, pca_col$superpop)
+
+# PC1 x PC2
+ga_pc1 <- ggplot() +  
+  geom_point(data = filter(pca, cohort == 'Reference'), 
+             aes(x = PC1, y = PC2, color = superpop), shape = 15, size = 2) + 
+  geom_point(data = filter(pca, cohort == 'HABS-HD'), 
+             aes(x = PC1, y = PC2, color = superpop), size = 0.75) + 
+  scale_color_manual(values = color_vector) + 
+  theme_bw()
+
+# PC3 x PC4
+ga_pc3 <- ggplot() +  
+  geom_point(data = filter(pca, cohort == 'Reference'), 
+             aes(x = PC3, y = PC4, color = superpop), shape = 15, size = 2) + 
+  geom_point(data = filter(pca, cohort == 'HABS-HD'), 
+             aes(x = PC3, y = PC4, color = superpop), size = 0.75) + 
+  scale_color_manual(values = color_vector) + 
+  theme_bw()
+
+cowplot::plot_grid(
+  ga_pc1, ga_pc3, 
 )
 
-if (all_pops) {
-  tab_1 <- as.data.frame(clusters)
-  pca_sample <- pca %>%
-    filter(cohort != "Reference") %>%
-    mutate(pop_outliers = F)
-  tab_pop_exclusions <- tibble(Exclusions = "None")
-} else if (!is.numeric(sdev)) {
-  report_settings$filter_inference <- T
-  tab_1 <- as.data.frame(clusters)
-  pca_sample <- pca %>%
-    filter(cohort != "Reference") %>%
-    mutate(pop_outliers = !(superpop_infered %in% population))
-  tab_pop_exclusions <- pca_sample %>%
-    filter(pop_outliers) %>%
-    select(FID, IID, "Infered Superpopulation" = superpop_infered)
-} else {
-  report_settings$filter_sd <- T
-  # ---- Population Outliers ---- #
-  # Calculate the mean and ± specified number of sd for each PC of ref pop
+```
 
-  message("Table 1")
+Lets join with the phenotype data to compare ancestry and race
 
-  chosen_pca <- pca_corrected %>%
-    gather(key = "PC", value = "eigenvalue", !!paste0("PC", 1:n_eig)) %>%
-    filter(superpop == population) %>%
-    group_by(superpop, PC) %>%
-    dplyr::summarize(mean = mean(eigenvalue), sd = sd(eigenvalue),
-                     .groups = "drop") %>%
-    mutate(lower = mean - sd * sdev, upper = mean + sd * sdev) %>%
-    mutate(PC = factor(PC, levels = paste0("PC", 1:n_eig))) %>%
-    arrange(PC)
+```{r}
+#| eval: false
+#| label: Visualize HABS-HD
+#| code-summary: Visualize HABS-HD
+#| code-fold: TRUE
 
-  #***Table 1:*** Mean and SD of PC in chosen population
-  tab_1 <- as.data.frame(chosen_pca)
+pca_pheno <- pca %>% 
+  filter(cohort == "HABS-HD") %>%
+  mutate(IID = as.numeric(IID)) %>%
+  left_join(read_csv('work/habshd_pheno.csv'), by = c('IID' = 'med_id'))
 
-  # For each sample individual, determine if ± specified SD from chosen pop
-  # for each principal component
+# PC1 x PC2
+habshd_ga <- ggplot(pca_pheno, aes(x = PC1, y = PC2, color = superpop_infered)) +  
+  geom_point() + 
+  scale_color_manual(values = color_vector) + 
+  theme_bw() + 
+  labs(title = "Genetic Ancestry")
 
-  message("Table 2")
+# PC1 x PC2
+habshd_race <- ggplot(pca_pheno, aes(x = PC1, y = PC2, color = race)) +  
+  geom_point() + 
+  scale_color_manual(values = color_vector) + 
+  theme_bw() + 
+  labs(title = "Race")
 
-  pca_range <- function(pc, vals) {
-    lower <- chosen_pca[chosen_pca$PC == pc, "lower"] %>% unlist %>% unname
-    upper <- chosen_pca[chosen_pca$PC == pc, "upper"] %>% unlist %>% unname
-    sapply(vals, function(x) x < lower | x > upper) %>% as.logical
-  }
+cowplot::plot_grid(
+  habshd_ga, habshd_race
+)
 
-  mut_pca <- function(df, pc, pc_use) {
-    pc <- 1:pc
-    pc_use <- paste0("PC", pc, ".outliers")[1:pc_use]
-    for (i in paste0("PC", pc)) {
-      df %<>% mutate(`!!`(paste0(i, ".outliers")) := pca_range(i, .[, i]))
-    }
-    dplyr::mutate(df, pop_outliers = rowSums(dplyr::select(df, !!pc_use)) > 0)
-  }
-
-  pca_sample <- pca_corrected %>%
-    filter(superpop == sample_s) %>%
-    mut_pca(n_eig, 10)
-
-  # ***Table 2:*** Population Outliers for each PC
-
-  outlier_cols <- paste0("PC", 1:n_eig, ".outliers")
-  outlier_cols_rename <- outlier_cols
-  names(outlier_cols_rename) <- paste0("PC", 1:n_eig)
-
-  replace_tf <- function(x) ifelse(x == T, "Yes", ifelse(x == F, "No", x))
-
-  tab_pop_exclusions <- pca_sample %>%
-    select(FID, IID, !!outlier_cols, pop_outliers) %>%
-    filter(pop_outliers == T) %>%
-    dplyr::rename(!!!outlier_cols_rename) %>%
-    select(-pop_outliers) %>%
-    transmute_all(replace_tf)
-}
-
-# ---- Write out outliers ---- #
-
-no_outliers <- sum(pca_sample$pop_outliers) == 0
-exclude_pop_outliers <- pca_sample %>%
-  filter(pop_outliers == TRUE) %>%
-  select(FID, IID)
-
-write_tsv(exclude_pop_outliers, output, col_names = F)
-
-save(tab_1, tab_pop_exclusions, no_outliers, pca, pca_sample, eigenval,
-     pca_col, sdev, report_settings, file = rmd)
 ```
 
 ## ADMIXTURE 
 
-TBD
+### Reference Processing
+
+To prepare the gnomAD reference, we did the following:
+
+*  Remove samples without a population inference from gnomAD or without high_quality set to TRUE.
+*  Make a column (`spop`) by doing the following with the populations inferred by gnomAD:
+   *  Merge "nfe" and "fin" into "EUR"
+   *  Move oceanic subjects from "oth" to their own "OCE" category.
+   *  Capitalize all other superpopulations.
+*  Make a column (`spop_checked`) where the original superpopulations match the inferred superpopulations:
+   *  The new `spop` column is used for inferred superpopulation.
+   *  The `genetic_region` column is used for original superpopulation.
+   *  "CSA" in `genetic_region` is considered a match to "SAS" in `spop`. "SAS" is used in the new column. 
+   *  All subjects where there is no match are set to "NA"
+
+### ADMIXTURE Procedure
+
+The following steps are used to generate Global Ancestry Inference (GAI) estimates:
+
+1. Process the reference label data as described above.
+2. Obtain the intersection of the reference and target varients, then prune the reference with a 100kb window and R^2 of 0.1.
+3. Restrict sample genotypes to those present in the pruned reference, then merge with the reference samples. Check that the `.bim` files are identical.
+4. Run unsupervised ADMIXTURE with K = 12 on the reference dataset.
+5. Run ADMIXTURE projection on the merged reference and target samples.
+6. Read in the processed reference labels, ADMIXTURE cluster estimates (Q files), and PLINK `.fam` files.
+7. Merge the reference labels with the ADMIXTURE cluster estimates and extract the reference samples for labeling, excluding Middle Eastern reference samples.
+8. Label the clusters by assigning to each cluster the superpopulation with the highest average proportion within that cluster. The checked superpopulation labels are used for this labeling process.
+9. Using the cluster labels, calculate GAI proportions and maximum superpopulation for all samples.
+10. Visualize below.
+
+We can execute ADMIXTURE using the code below; however, it requires approximately 24 hours of compute time. We have determined that K=12 is the optimal number of ancestral populations for 1KG + HGDP datasets. Our goal is to project the HABS-HD samples onto this reference dataset. This will produce `.Q` and `.P` file that contain the estimated ancestry fractions for each individual across the inferred populations and the allele frequencies for each population respectivly.
 
 ```{bash}
 #| eval: false
@@ -336,3 +362,244 @@ TBD
 admixture -P -s 42 habshd_merged_gnomad-hgdp-1kg.hg38.bed 12 -j1
 
 ```
+
+Lets visualize the global ancestry of the HABS-HD dataset. Make sure the following files are in your `work` directory. 
+
+- `work/gnomad-hgdp-1kg_pruned_habshd.hg38.fam`
+- `work/habshd_merged_gnomad-hgdp-1kg.hg38.12.Q`
+- `work/habshd_merged_gnomad-hgdp-1kg.hg38.fam`
+- `work/hgdp_1kg.popdata.tsv.gz`
+
+```{r}
+#| eval: false
+#| label: Import ADMIXTURE Packages
+#| code-summary: ADMIXTURE Packages
+#| code-fold: TRUE
+
+suppressPackageStartupMessages(library(dplyr))
+library(readr)
+library(tidyr)
+library(purrr)
+library(tibble)
+library(stringr)
+```
+
+
+```{r}
+#| eval: false
+#| label: Import ADMIXTURE
+#| code-summary: Import ADMIXTURE
+#| code-fold: TRUE
+
+## Input and output files
+in_fam_ref <- 'work/gnomad-hgdp-1kg_pruned_habshd.hg38.fam'
+in_q_samp <- 'work/habshd_merged_gnomad-hgdp-1kg.hg38.12.Q'
+in_fam_samp <- 'work/habshd_merged_gnomad-hgdp-1kg.hg38.fam'
+in_pops <- 'work/hgdp_1kg.popdata.tsv.gz'
+out_anc <- 'work/admixture_cohort-habshd_ref-gnomad-hgdp-1kg.hg38.tsv'
+
+# Fam and popfiles
+## ======================================##
+message("Reading pop file \n")
+pops <- in_pops |>
+  read_tsv(col_types = cols(.default = "c")) |>
+  rename(ID = IID)
+
+message("Reading fam files \n")
+read_fam <- function(in_fam) {
+  in_fam |>
+    read_table(col_names = c("ID"), col_types = "-c----") |>
+    mutate(order = row_number())
+}
+
+famfile_ref <- read_fam(in_fam_ref) |>
+  mutate(partition = "reference")
+famfile_samp <- read_fam(in_fam_samp) |>
+  mutate(partition = "sample")
+
+famfile <- bind_rows(famfile_ref, famfile_samp)
+
+# Interpreting unsupervised admixture output #
+## ======================================##
+message("Reading unsupervised admixture output \n")
+
+read_q <- function(in_q, fam) {
+  in_q |>
+    read_table(col_names = FALSE, col_types = cols(.default = "d")) |>
+    bind_cols(fam) |>
+    rename_with(~ str_replace(.x, "^X", "k"))
+}
+
+tbl_admix_samp <- read_q(in_q_samp, famfile_samp)
+
+overlap <- intersect(famfile_ref$ID, tbl_admix_samp$ID)
+if (length(overlap) == nrow(famfile_ref)) {
+  tbl_admix <- tbl_admix_samp |>
+    left_join(pops, by = "ID") |>
+    mutate(partition = ifelse(ID %in% famfile_ref$ID, "reference", partition))
+  tbl_admix_ref <- tbl_admix |>
+    filter(ID %in% famfile_ref$ID) |>
+    mutate(FID = "reference")
+  tbl_admix_samp <- tbl_admix |>
+    filter(!(ID %in% tbl_admix_ref$ID))
+} else if (length(overlap) != 0) {
+  stop("Missing reference samples")
+} else {
+  tbl_admix_ref <- read_q(in_q_ref, famfile_ref)
+  tbl_admix_ref <- tbl_admix_ref |>
+    left_join(pops, by = "ID") |>
+    mutate(FID = "reference")
+  tbl_admix <- bind_rows(tbl_admix_ref, tbl_admix_samp)
+}
+
+# Determining cluster labels
+
+cluster_cols <- names(tbl_admix)[str_detect(names(tbl_admix), "^k\\d+$")]
+
+assign_labels <- function(tbl_admix) {
+  if ("spop_checked" %in% colnames(tbl_admix)) {
+    assign_admix_raw <- tbl_admix |>
+      select(any_of(c("FID", "IID", "ID")),
+        spop = spop_checked, matches("^k\\d+$")) |>
+      filter(spop != "MID") |> # remove middle eastern from assignment
+      group_by(spop) |>
+      summarise(across(where(is.numeric), mean)) |>
+      filter(!is.na(spop))
+  } else {
+    assign_admix_raw <- tbl_admix |>
+      group_by(spop) |>
+      summarise(across(where(is.numeric), mean)) |>
+      filter(!is.na(spop))
+  }
+
+  assign_admix_mat <- assign_admix_raw |>
+    column_to_rownames(var = "spop") |>
+    as.matrix()
+
+  assign_admix <- assign_admix_mat |>
+    t() |>
+    as.data.frame() |>
+    (\(.) mutate(., anc = colnames(.)[apply(., 1, which.max)]))() |>
+    as_tibble(rownames = "cluster") |>
+    rowwise() |>
+    mutate(maxval = max(c_across(where(is.numeric)))) |>
+    group_by(anc) |>
+    arrange(-maxval) |>
+    mutate(n = n(),
+           cname = ifelse(n > 1, paste(anc, row_number(), sep = "_"), anc)) |>
+    ungroup() |>
+    select(-maxval, -n) |>
+    arrange(cname) |>
+    select(cname, cluster, anc, everything())
+
+  assign_cname_vec <- pull(assign_admix, cname, cluster)
+
+  heatmap_names <- colnames(assign_admix_mat) |>
+    (\(x) sprintf("%s (%s)", assign_cname_vec[x], x))()
+
+  heatmap_mat <- assign_admix_mat
+  colnames(heatmap_mat) <- heatmap_names
+
+  return(list(assign = assign_admix,
+              heatmap = heatmap_mat,
+              assign_cname_vec = assign_cname_vec))
+}
+
+admix_labs <- assign_labels(tbl_admix)
+
+assign_admix <- admix_labs$assign
+heatmap_mat <- admix_labs$heatmap
+assign_cname_vec <- admix_labs$assign_cname_vec
+assign_super_vec <- pull(assign_admix, anc, cluster)
+assign_cname_vec_i <- pull(assign_admix, cluster, cname)
+superpops <- rownames(heatmap_mat)
+
+rm(admix_labs, assign_labels)
+
+# Assign individuals
+
+collapse_superpop <- function(df, sp) {
+  # Add overall proportion of each superpop, collapsing clusters
+  get_clusters <- \(spop) names(assign_super_vec[assign_super_vec == spop])
+  mutate(df, !!sp := rowSums(across(all_of(get_clusters(sp)))))
+}
+
+tbl_admix_collapsed <- tbl_admix
+for (sp in superpops) {
+  tbl_admix_collapsed <- collapse_superpop(tbl_admix_collapsed, sp)
+}
+
+tbl_admix_inf <- tbl_admix_collapsed |>
+  rowwise(ID) |>
+  mutate(maxval = max(c_across(all_of(cluster_cols))),
+         matchval = which.max(c_across(all_of(cluster_cols))),
+         max_spop_prop = max(c_across(all_of(superpops)))) |>
+  ungroup() |>
+  (\(.) mutate(.,
+    maxclust = colnames(.)[max.col(select(., matches("^k\\d+$")))],
+    "Maximum Cluster" = unname(assign_cname_vec[maxclust]),
+    admixture_super_pop_max = map_chr(maxclust, \(x) assign_super_vec[[x]]),
+    admixture_cluster_max = map_chr(maxclust, \(x) assign_cname_vec[[x]])))() |>
+  arrange(spop, admixture_super_pop_max, matchval, -maxval) |>
+  mutate(
+    pop = forcats::fct_inorder(pop),
+    spop = forcats::fct_inorder(spop),
+    admixture_super_pop_max = factor(
+      admixture_super_pop_max, levels = levels(spop))) |>
+  arrange(matchval, -maxval) |>
+  mutate(ID = forcats::fct_inorder(ID))
+
+out_admix <- tbl_admix_inf |>
+  select(-maxval, -matchval, -maxclust) |>
+  select(any_of(c("FID", "IID", "ID")),
+    all_of(superpops), matches("^k\\d+$"),
+    everything()) |>
+  filter(!is.na(pop) | partition == "sample")
+
+# Filter samples
+
+out_admix |>
+  arrange(desc(partition), admixture_super_pop_max) |>
+  fix_famfile() |>
+  select(any_of(c("FID", "IID", "ID")), partition, admixture_cluster_max,
+         admixture_super_pop_max, max_spop_prop, everything()) |>
+  select(-`Maximum Cluster`) |>
+  rename_with(~ paste0("k_", assign_cname_vec[.x]), matches("^k\\d+$")) |>
+  write_tsv(out_anc)
+
+
+```
+
+And now we can visualize the global ancestry. 
+
+```{r}
+#| eval: false
+#| label: Plot Admixture
+#| code-summary: Plot Admixture
+#| code-fold: TRUE
+
+tbl_use <-  out_admix %>% 
+  filter(partition == "sample") %>%
+  pivot_longer(all_of(c('AFR', 'AMR', 'EAS', 'EUR', 'OCE', 'SAS')), names_to = "Cluster", values_to = "prop" ) |>
+  mutate(spop = ifelse(genetic_region == "CSA", "SAS", genetic_region)) 
+
+ggplot(tbl_use, aes(x = ID, y = prop, fill = Cluster)) +
+    geom_bar(position = "fill", stat = "identity", width = 1) +
+    scale_fill_manual(values = color_vector) + 
+    theme_classic() +
+    labs(x = "Individual", y = "Global Ancestry", color = "Cluster") +
+    theme(
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank(),
+      axis.title.y = element_blank(),
+      axis.title.x = element_blank(),
+      panel.grid.major.x = element_blank(),
+      strip.text.x = element_text(angle = 90)) + 
+  facet_grid(~ admixture_super_pop_max, switch = "x",
+                     scales = "free", space = "free")
+
+ggsave()
+```
+
+
+
