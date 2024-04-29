@@ -18,8 +18,8 @@ editor_options:
 #| eval: false
 
 library(tidyverse)    # Data wrangling 
-library(TwoSampleMR)  # MR 
 library(ggman)
+setwd('~/gitcode/IntroGeneticEpi')
 
 # Define column types for summary statistics
 coltypes = cols(
@@ -47,9 +47,13 @@ coltypes = cols(
   OLD_VARIANT = col_character()
 )
 
+hm3 <- read_tsv('resources/genetic_epi/ld_ref/w_hm3.snplist')
+
 ```
 
+
 ## Lipids
+### Willer et al 2013
 A GWAS of low-density lipoprotein (LDL) cholesterol, high-density lipoprotein (HDL) cholesterol, triglycerides and total cholesterol levels conducted in 188,577 individuals that identified 157 loci were associated with lipid levels.
 
 Willer, C. J. et al. Discovery and refinement of loci associated with lipid levels. [Nat Genet 45, 1274–83 (2013)](https://www.nature.com/articles/ng.2797).
@@ -62,9 +66,9 @@ Summary statistics
 4. Total cholesterol
 
 ```{r}
-#| label: tc_manhattan
+#| label: ldl_manhattan_willer
 #| code-fold: true
-#| code-summary: LDL Cholesterol Manhattan
+#| code-summary: LDL Cholesterol Manhattan - Willer 2013
 #| warning: false
 #| error: false
 #| message: false
@@ -75,24 +79,68 @@ ldl_ss <- read_tsv(ldl_path, comment = "##", col_types = coltypes,
                         col_select = c(DBSNP_ID, CHROM, POS, REF, ALT, AF, BETA, SE, Z, P, N, TRAIT))
 
 # Filter on p < 0.5 to reduce compute
-ggman(filter(ldl_ss, P < 0.05 & P > 1e-100), snp = "DBSNP_ID", bp = "POS", chrom = "CHROM", pvalue = "P", relative.positions = TRUE) + 
-  theme_classic()
+Willer2013ldl.man <- ggman(filter(ldl_ss, P < 0.05 & P > 1e-100), 
+                           snp = "DBSNP_ID", bp = "POS", chrom = "CHROM", pvalue = "P", relative.positions = TRUE, 
+                           title = "LDL Cholesterol - Willer 2013") + 
+  theme_classic() 
+
+ggsave('results/figures/Willer2013ldl_ggman.png', plot = Willer2013ldl.man, units = 'in', width = 9, height = 4)
+
+# HM3 
+willer_hm3 <- ldl_ss %>%
+  semi_join(hm3, by = c('DBSNP_ID' = 'SNP'))
+
+write_tsv(willer_hm3, 'work/summary_statistics/Willer2013ldl_hm3.tsv.gz')
 
 ```
 
+![Willer2013ldl_ggman](../results/figures/Willer2013ldl_ggman.png)
 
+### Graham et al. 2021
 A GWAS of low-density lipoprotein (LDL) cholesterol, high-density lipoprotein (HDL) cholesterol, triglycerides and total cholesterol levels conducted using a multi-ancestry, genome-wide genetic discovery meta-analysis of lipid levels in approximately 1.65 million individuals, including 350,000 of non-European ancestries that found 773 lipid-associated genomic regions that contained 1,765 distinct index variants that reached genome-wide significance for at least 1 ancestry group and lipid trait
 
 Graham, S. E. et al. The power of genetic diversity in genome-wide association studies of lipids. [Nature 600, 675–679 (2021)](https://www.nature.com/articles/s41586-021-04064-3).
 
 Summary Statistics
 
-1. 
-2. 
-3. 
-4. 
+1. LDL Cholesterol (EUR)
+2. HDL Cholesterol (EUR)
+
+
+```{r}
+#| label: ldl_manhattan_graham
+#| code-fold: true
+#| code-summary: LDL Cholesterol Manhattan - Graham 2021
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+
+# Manhattan Plot
+Graham_ldl_path = "resources/genetic_epi/summary_statistics/Graham2021ldl.chrall.CPRA_b37.tsv.gz"
+Graham_ldl_ss <- read_tsv(Graham_ldl_path, comment = "##", col_types = coltypes, 
+                        col_select = c(DBSNP_ID, CHROM, POS, REF, ALT, AF, BETA, SE, Z, P, N, TRAIT))
+
+# Filter on p < 0.5 to reduce compute
+Graham2021ldl.man <- ggman(filter(Graham_ldl_ss, P < 0.05 & P > 1e-100), 
+                           snp = "DBSNP_ID", bp = "POS", chrom = "CHROM", pvalue = "P", relative.positions = TRUE, 
+                           title = "LDL Cholesterol - Graham 2021") + 
+  theme_classic() 
+
+ggsave('results/figures/Graham2021ldl_ggman.png', plot = Graham2021ldl.man, units = 'in', width = 9, height = 4)
+
+# HM3 
+Graham_hm3 <- Graham_ldl_ss %>%
+  semi_join(hm3, by = c('DBSNP_ID' = 'SNP'))
+
+write_tsv(Graham_hm3, 'work/summary_statistics/Graham2021ldl_hm3.tsv.gz')
+
+```
+
+![Graham2021ldl_ggman](../results/figures/Graham2021ldl_ggman.png)
 
 ## Alzheimer's disease 
+### Kunkle 2019
 A GWAS of Alzheimer’s disease conducted in 94,437 indivudles by the International Genomics Alzheiemr’s Project that identified 20 genome-wide signiﬁcant loci. 
 
 Kunkle, B. W. et al. Genetic meta-analysis of diagnosed Alzheimer’s disease identifies new risk loci and implicates Aβ, tau, immunity and lipid processing. [Nat Genet 51, 414–430 (2019)](https://www.nature.com/articles/s41588-019-0358-2).
@@ -117,12 +165,24 @@ AD_ss <- read_tsv(AD_path, comment = "##",  col_types = coltypes,
                        col_select = c(DBSNP_ID, CHROM, POS, REF, ALT, AF, BETA, SE, Z, P, N, TRAIT))
 
 # Filter on p < 0.5 to reduce compute
-ggman(filter(AD_ss, P < 0.05 & P > 1e-100), snp = "DBSNP_ID", bp = "POS", chrom = "CHROM", pvalue = "P", relative.positions = TRUE) + 
+kunkle2019load.man <- ggman(filter(AD_ss, P < 0.05 & P > 1e-100), 
+                            snp = "DBSNP_ID", bp = "POS", chrom = "CHROM", pvalue = "P", relative.positions = TRUE, 
+                           title = "AD - Kunkle 2019") + 
   theme_classic()
+
+ggsave('results/figures/Kunkle2019load_ggman.png', plot = kunkle2019load.man, units = 'in', width = 9, height = 4)
+
+# HM3
+Kunkle_hm3 <- AD_ss %>%
+  semi_join(hm3, by = c('DBSNP_ID' = 'SNP'))
+
+write_tsv(Kunkle_hm3, 'work/summary_statistics/Kunkle2019load_hm3.tsv.gz')
 
 ```
 
+![Kunkle2019load_ggman](../results/figures/Kunkle2019load_ggman.png)
 
+### Bellenguez 2022
 A GWAS of Alzheimer's disease and related dementias conducted using 111,326 clinically diagnosed/‘proxy’ AD cases and 677,663 controls that identified 75 risk loci, of which 42 were novel.
 
 Bellenguez, C. et al. New insights into the genetic etiology of Alzheimer’s disease and related dementias. [Nat Genet 54, 412–436 (2022)](https://www.nature.com/articles/s41588-022-01024-z).
@@ -140,12 +200,75 @@ Summary statistics
 #| message: false
 #| eval: false
 
-ADRD_path = "resources/genetic_epi/summary_statistics/Kunkle2019load_stage123.chrall.CPRA_b37.tsv.gz"
+ADRD_path = "resources/genetic_epi/summary_statistics/Bellenguez2022load.chrall.CPRA_b37.tsv.gz"
 ADRD_ss <- read_tsv(ADRD_path, comment = "##",  col_types = coltypes, 
                        col_select = c(DBSNP_ID, CHROM, POS, REF, ALT, AF, BETA, SE, Z, P, N, TRAIT))
 
 # Filter on p < 0.5 to reduce compute
-ggman(filter(ADRD_ss, P < 0.05 & P > 1e-100), snp = "DBSNP_ID", bp = "POS", chrom = "CHROM", pvalue = "P", relative.positions = TRUE) + 
+adard.man <- ggman(filter(ADRD_ss, P < 0.05 & P > 1e-100), 
+                   snp = "DBSNP_ID", bp = "POS", chrom = "CHROM", pvalue = "P", relative.positions = TRUE, 
+                   title = "ADRD - Bellenguez 2022"
+                   ) + 
   theme_classic()
 
+ggsave('results/figures/Bellenguez2022load_ggman.png', plot = adard.man, units = 'in', width = 9, height = 4)
+
+# HM3
+ADRD_hm3 <- ADRD_ss %>%
+  semi_join(hm3, by = c('DBSNP_ID' = 'SNP'))
+
+write_tsv(ADRD_hm3, 'work/summary_statistics/Bellenguez2022load_hm3.tsv.gz')
+
 ```
+
+![Bellenguez2022load_ggman](../results/figures/Bellenguez2022load_ggman.png)
+
+## Educational Attainment
+### Lee et al 2018
+A large-scale genetic association analysis of educational attainment in a sample of approximately 1.1 million individuals and identify 1,271 independent genome-wide-significant SNPs
+
+Lee, J. J. et al. Gene discovery and polygenic prediction from a genome-wide association study of educational attainment in 1.1 million individuals. [Nat Genet 50, 1112–1121 (2018)](https://www.nature.com/articles/s41588-018-0147-3).
+  
+Summary statistics 
+
+1. Years of Education  
+
+```{r}
+#| label: Educ_manhattan_plot
+#| code-fold: true
+#| code-summary: Education Manhattan Plot
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+
+educ_path = "resources/genetic_epi/summary_statistics/Lee2018educ.chrall.CPRA_b37.tsv.gz"
+educ_ss <- read_tsv(educ_path, comment = "##",  col_types = coltypes, 
+                       col_select = c(DBSNP_ID, CHROM, POS, REF, ALT, AF, BETA, SE, Z, P, N, TRAIT))
+
+# Filter on p < 0.5 to reduce compute
+educ.man <- ggman(filter(educ_ss, P < 0.05 & P > 1e-100), 
+                   snp = "DBSNP_ID", bp = "POS", chrom = "CHROM", pvalue = "P", relative.positions = TRUE, 
+                   title = "Education - Lee 2018"
+                   ) + 
+  theme_classic()
+
+ggsave('results/figures/Lee2018educ_ggman.png', plot = educ.man, units = 'in', width = 9, height = 4)
+
+# HM3
+educ_hm3 <- educ_ss %>%
+  semi_join(hm3, by = c('DBSNP_ID' = 'SNP'))
+
+write_tsv(educ_hm3, 'work/summary_statistics/Lee2018educ_hm3.tsv.gz')
+
+```
+
+![Lee2018educ_ggman](../results/figures/Lee2018educ_ggman.png)
+
+
+
+
+
+
+
+

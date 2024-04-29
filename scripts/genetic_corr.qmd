@@ -5,7 +5,7 @@ execute:
 editor_options: 
   chunk_output_type: console
 ---
-# Genetic Correlations {.unnumbered}
+# Heritability & Genetic Correlations {.unnumbered}
 
 
 ```{r}
@@ -15,6 +15,7 @@ editor_options:
 #| warning: false
 #| error: false
 #| message: false
+#| eval: false
 
 library(tidyverse)    # Data wrangling 
 library(GenomicSEM)  
@@ -47,6 +48,10 @@ You will need to make sure the following summary statistics are in `resources/ge
 And that the LD Reference Panels are avaliable in `resources/genetic_epi/ld_ref/`
 
 First we need to munge the GWAS summary statistics so they are in the format required for LDSC. 
+
+::: {.callout-warning}
+With large GWAS summary statistic files your local machine may run out of memory. 
+:::
 
 ```{r}
 #| label: Munge

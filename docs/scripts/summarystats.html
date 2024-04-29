@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.2.335">
+<meta name="generator" content="quarto-1.3.433">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -17,8 +17,42 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
   width: 0.8em;
-  margin: 0 0.8em 0.2em -1.6em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -57,7 +91,8 @@ ul.task-list li input[type="checkbox"] {
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
     "search-detached-cancel-button-title": "Cancel",
-    "search-submit-button-title": "Submit"
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
   }
 }</script>
 
@@ -68,11 +103,16 @@ ul.task-list li input[type="checkbox"] {
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
-  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
-    <div class="container-fluid d-flex justify-content-between">
-      <h1 class="quarto-secondary-nav-title">Summary Statistics</h1>
-      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
-        <i class="bi bi-chevron-right"></i>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../index.html">Introduction</a></li><li class="breadcrumb-item"><a href="../scripts/summarystats.html">Summary Statistics</a></li></ol></nav>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
       </button>
     </div>
   </nav>
@@ -80,139 +120,152 @@ ul.task-list li input[type="checkbox"] {
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="../">Introduction to Genetic Epidemiology</a> 
         <div class="sidebar-tools-main">
-    <a href="https://github.com/AndrewsLabUCSF/IntroGeneticEpi" title="Source Code" class="sidebar-tool px-1"><i class="bi bi-github"></i></a>
-    <a href="https://twitter.com/intent/tweet?url=|url|" title="Twitter" class="sidebar-tool px-1"><i class="bi bi-twitter"></i></a>
+    <a href="https://github.com/AndrewsLabUCSF/IntroGeneticEpi" rel="" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+    <a href="https://twitter.com/intent/tweet?url=|url|" rel="" title="Twitter" class="quarto-navigation-tool px-1" aria-label="Twitter"><i class="bi bi-twitter"></i></a>
 </div>
     </div>
       </div>
-      <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="mt-2 flex-shrink-0 align-items-center">
         <div class="sidebar-search">
         <div id="quarto-search" class="" title="Search"></div>
         </div>
-      </div>
+        </div>
     <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a href="../index.html" class="sidebar-item-text sidebar-link">Introduction</a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+            <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introduction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/schedule.html" class="sidebar-item-text sidebar-link">Schedule</a>
+  <a href="../scripts/schedule.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Schedule</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/conda.html" class="sidebar-item-text sidebar-link">Conda Env</a>
+  <a href="../scripts/conda.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Conda Env</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/habshd.html" class="sidebar-item-text sidebar-link">HABS-HD</a>
+  <a href="../scripts/habshd.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">HABS-HD</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/summarystats.html" class="sidebar-item-text sidebar-link active">Summary Statistics</a>
+  <a href="../scripts/summarystats.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Summary Statistics</span></a>
   </div>
 </li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">Genome-wide Association Studies</a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
+ <span class="menu-text">Genome-wide Association Studies</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/gwas_qc.html" class="sidebar-item-text sidebar-link">GWAS QC</a>
+  <a href="../scripts/gwas_qc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GWAS QC</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/gwas.html" class="sidebar-item-text sidebar-link">GWAS</a>
+  <a href="../scripts/gwas.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GWAS</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/gwas_ss.html" class="sidebar-item-text sidebar-link">GWAS-SS</a>
+  <a href="../scripts/gwas_ss.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GWAS-SS</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/ancestry.html" class="sidebar-item-text sidebar-link">Genetic Ancestry</a>
+  <a href="../scripts/ancestry.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Genetic Ancestry</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/heritability.html" class="sidebar-item-text sidebar-link">Heritability</a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../scripts/genetic_corr.html" class="sidebar-item-text sidebar-link">Genetic Correlations</a>
+  <a href="../scripts/genetic_corr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Heritability &amp; Genetic Correlations</span></a>
   </div>
 </li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">Polygenic Risk Scores</a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+ <span class="menu-text">Polygenic Risk Scores</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/prs.html" class="sidebar-item-text sidebar-link">Polygenic Risk Scores</a>
+  <a href="../scripts/prs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Polygenic Risk Scores</span></a>
   </div>
 </li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">Mendelian Randomization</a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
+ <span class="menu-text">Mendelian Randomization</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/mr.html" class="sidebar-item-text sidebar-link">Mendelian Randomization</a>
+  <a href="../scripts/mr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Mendelian Randomization</span></a>
   </div>
 </li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">Appendices</a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/references.html" class="sidebar-item-text sidebar-link">References</a>
+  <a href="../scripts/references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/acknowledgments.html" class="sidebar-item-text sidebar-link">Acknowledgments</a>
+  <a href="../scripts/acknowledgments.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Acknowledgments</span></a>
   </div>
 </li>
       </ul>
@@ -220,16 +273,36 @@ ul.task-list li input[type="checkbox"] {
     </ul>
     </div>
 </nav>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#lipids" id="toc-lipids" class="nav-link active" data-scroll-target="#lipids">Lipids</a>
+  <ul class="collapse">
+  <li><a href="#willer-et-al-2013" id="toc-willer-et-al-2013" class="nav-link" data-scroll-target="#willer-et-al-2013">Willer et al 2013</a></li>
+  <li><a href="#graham-et-al.-2021" id="toc-graham-et-al.-2021" class="nav-link" data-scroll-target="#graham-et-al.-2021">Graham et al.&nbsp;2021</a></li>
+  </ul></li>
+  <li><a href="#alzheimers-disease" id="toc-alzheimers-disease" class="nav-link" data-scroll-target="#alzheimers-disease">Alzheimer’s disease</a>
+  <ul class="collapse">
+  <li><a href="#kunkle-2019" id="toc-kunkle-2019" class="nav-link" data-scroll-target="#kunkle-2019">Kunkle 2019</a></li>
+  <li><a href="#bellenguez-2022" id="toc-bellenguez-2022" class="nav-link" data-scroll-target="#bellenguez-2022">Bellenguez 2022</a></li>
+  </ul></li>
+  <li><a href="#educational-attainment" id="toc-educational-attainment" class="nav-link" data-scroll-target="#educational-attainment">Educational Attainment</a>
+  <ul class="collapse">
+  <li><a href="#lee-et-al-2018" id="toc-lee-et-al-2018" class="nav-link" data-scroll-target="#lee-et-al-2018">Lee et al 2018</a></li>
+  </ul></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title d-none d-lg-block">Summary Statistics</h1>
+<h1 class="title">Summary Statistics</h1>
 </div>
 
 
@@ -244,8 +317,245 @@ ul.task-list li input[type="checkbox"] {
 
 </header>
 
+<div class="cell">
+<details>
+<summary>Load R Packages</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)    <span class="co"># Data wrangling </span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggman)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">setwd</span>(<span class="st">'~/gitcode/IntroGeneticEpi'</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Define column types for summary statistics</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>coltypes <span class="ot">=</span> <span class="fu">cols</span>(</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">ID =</span> <span class="fu">col_character</span>(),</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">CHROM =</span> <span class="fu">col_double</span>(),</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">POS =</span> <span class="fu">col_double</span>(),</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">REF =</span> <span class="fu">col_character</span>(),</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">ALT =</span> <span class="fu">col_character</span>(),</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">AF =</span> <span class="fu">col_double</span>(),</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">TRAIT =</span> <span class="fu">col_character</span>(),</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">BETA =</span> <span class="fu">col_double</span>(),</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">SE =</span> <span class="fu">col_double</span>(),</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">Z =</span> <span class="fu">col_double</span>(),</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">P =</span> <span class="fu">col_double</span>(),</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">N =</span> <span class="fu">col_double</span>(),</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">OR =</span> <span class="fu">col_double</span>(),</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">OR_L95 =</span> <span class="fu">col_double</span>(),</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">OR_U95 =</span> <span class="fu">col_double</span>(),</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">DIR =</span> <span class="fu">col_character</span>(),</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">G1000_ID =</span> <span class="fu">col_character</span>(),</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">G1000_VARIANT =</span> <span class="fu">col_character</span>(),</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">DBSNP_ID =</span> <span class="fu">col_character</span>(),</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  <span class="at">DBSNP_VARIANT =</span> <span class="fu">col_character</span>(),</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  <span class="at">OLD_ID =</span> <span class="fu">col_character</span>(),</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  <span class="at">OLD_VARIANT =</span> <span class="fu">col_character</span>()</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>hm3 <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">'resources/genetic_epi/ld_ref/w_hm3.snplist'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<section id="lipids" class="level2">
+<h2 class="anchored" data-anchor-id="lipids">Lipids</h2>
+<section id="willer-et-al-2013" class="level3">
+<h3 class="anchored" data-anchor-id="willer-et-al-2013">Willer et al 2013</h3>
+<p>A GWAS of low-density lipoprotein (LDL) cholesterol, high-density lipoprotein (HDL) cholesterol, triglycerides and total cholesterol levels conducted in 188,577 individuals that identified 157 loci were associated with lipid levels.</p>
+<p>Willer, C. J. et al.&nbsp;Discovery and refinement of loci associated with lipid levels. <a href="https://www.nature.com/articles/ng.2797">Nat Genet 45, 1274–83 (2013)</a>.</p>
+<p>Summary statistics</p>
+<ol type="1">
+<li>LDL Cholesterol</li>
+<li>HDL Cholesterol</li>
+<li>Triglycerides</li>
+<li>Total cholesterol</li>
+</ol>
+<div class="cell">
+<details>
+<summary>LDL Cholesterol Manhattan - Willer 2013</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ldl_path <span class="ot">=</span> <span class="st">"resources/genetic_epi/summary_statistics/Willer2013ldl.chrall.CPRA_b37.tsv.gz"</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>ldl_ss <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(ldl_path, <span class="at">comment =</span> <span class="st">"##"</span>, <span class="at">col_types =</span> coltypes, </span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>                        <span class="at">col_select =</span> <span class="fu">c</span>(DBSNP_ID, CHROM, POS, REF, ALT, AF, BETA, SE, Z, P, N, TRAIT))</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter on p &lt; 0.5 to reduce compute</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>Willer2013ldl.man <span class="ot">&lt;-</span> <span class="fu">ggman</span>(<span class="fu">filter</span>(ldl_ss, P <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> P <span class="sc">&gt;</span> <span class="fl">1e-100</span>), </span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>                           <span class="at">snp =</span> <span class="st">"DBSNP_ID"</span>, <span class="at">bp =</span> <span class="st">"POS"</span>, <span class="at">chrom =</span> <span class="st">"CHROM"</span>, <span class="at">pvalue =</span> <span class="st">"P"</span>, <span class="at">relative.positions =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>                           <span class="at">title =</span> <span class="st">"LDL Cholesterol - Willer 2013"</span>) <span class="sc">+</span> </span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() </span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">'results/figures/Willer2013ldl_ggman.png'</span>, <span class="at">plot =</span> Willer2013ldl.man, <span class="at">units =</span> <span class="st">'in'</span>, <span class="at">width =</span> <span class="dv">9</span>, <span class="at">height =</span> <span class="dv">4</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co"># HM3 </span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>willer_hm3 <span class="ot">&lt;-</span> ldl_ss <span class="sc">%&gt;%</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">semi_join</span>(hm3, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">'DBSNP_ID'</span> <span class="ot">=</span> <span class="st">'SNP'</span>))</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="fu">write_tsv</span>(willer_hm3, <span class="st">'work/summary_statistics/Willer2013ldl_hm3.tsv.gz'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../results/figures/Willer2013ldl_ggman.png" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">Willer2013ldl_ggman</figcaption>
+</figure>
+</div>
+</section>
+<section id="graham-et-al.-2021" class="level3">
+<h3 class="anchored" data-anchor-id="graham-et-al.-2021">Graham et al.&nbsp;2021</h3>
+<p>A GWAS of low-density lipoprotein (LDL) cholesterol, high-density lipoprotein (HDL) cholesterol, triglycerides and total cholesterol levels conducted using a multi-ancestry, genome-wide genetic discovery meta-analysis of lipid levels in approximately 1.65 million individuals, including 350,000 of non-European ancestries that found 773 lipid-associated genomic regions that contained 1,765 distinct index variants that reached genome-wide significance for at least 1 ancestry group and lipid trait</p>
+<p>Graham, S. E. et al.&nbsp;The power of genetic diversity in genome-wide association studies of lipids. <a href="https://www.nature.com/articles/s41586-021-04064-3">Nature 600, 675–679 (2021)</a>.</p>
+<p>Summary Statistics</p>
+<ol type="1">
+<li>LDL Cholesterol (EUR)</li>
+<li>HDL Cholesterol (EUR)</li>
+</ol>
+<div class="cell">
+<details>
+<summary>LDL Cholesterol Manhattan - Graham 2021</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Manhattan Plot</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>Graham_ldl_path <span class="ot">=</span> <span class="st">"resources/genetic_epi/summary_statistics/Graham2021ldl.chrall.CPRA_b37.tsv.gz"</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>Graham_ldl_ss <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(Graham_ldl_path, <span class="at">comment =</span> <span class="st">"##"</span>, <span class="at">col_types =</span> coltypes, </span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>                        <span class="at">col_select =</span> <span class="fu">c</span>(DBSNP_ID, CHROM, POS, REF, ALT, AF, BETA, SE, Z, P, N, TRAIT))</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter on p &lt; 0.5 to reduce compute</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>Graham2021ldl.man <span class="ot">&lt;-</span> <span class="fu">ggman</span>(<span class="fu">filter</span>(Graham_ldl_ss, P <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> P <span class="sc">&gt;</span> <span class="fl">1e-100</span>), </span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>                           <span class="at">snp =</span> <span class="st">"DBSNP_ID"</span>, <span class="at">bp =</span> <span class="st">"POS"</span>, <span class="at">chrom =</span> <span class="st">"CHROM"</span>, <span class="at">pvalue =</span> <span class="st">"P"</span>, <span class="at">relative.positions =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>                           <span class="at">title =</span> <span class="st">"LDL Cholesterol - Graham 2021"</span>) <span class="sc">+</span> </span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() </span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">'results/figures/Graham2021ldl_ggman.png'</span>, <span class="at">plot =</span> Graham2021ldl.man, <span class="at">units =</span> <span class="st">'in'</span>, <span class="at">width =</span> <span class="dv">9</span>, <span class="at">height =</span> <span class="dv">4</span>)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="co"># HM3 </span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>Graham_hm3 <span class="ot">&lt;-</span> Graham_ldl_ss <span class="sc">%&gt;%</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">semi_join</span>(hm3, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">'DBSNP_ID'</span> <span class="ot">=</span> <span class="st">'SNP'</span>))</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="fu">write_tsv</span>(Graham_hm3, <span class="st">'work/summary_statistics/Graham2021ldl_hm3.tsv.gz'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../results/figures/Graham2021ldl_ggman.png" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">Graham2021ldl_ggman</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="alzheimers-disease" class="level2">
+<h2 class="anchored" data-anchor-id="alzheimers-disease">Alzheimer’s disease</h2>
+<section id="kunkle-2019" class="level3">
+<h3 class="anchored" data-anchor-id="kunkle-2019">Kunkle 2019</h3>
+<p>A GWAS of Alzheimer’s disease conducted in 94,437 indivudles by the International Genomics Alzheiemr’s Project that identified 20 genome-wide signiﬁcant loci.</p>
+<p>Kunkle, B. W. et al.&nbsp;Genetic meta-analysis of diagnosed Alzheimer’s disease identifies new risk loci and implicates Aβ, tau, immunity and lipid processing. <a href="https://www.nature.com/articles/s41588-019-0358-2">Nat Genet 51, 414–430 (2019)</a>.</p>
+<p>Summary statistics</p>
+<ol type="1">
+<li>Late-onset Alzheimer’s disease (LOAD)</li>
+</ol>
+<div class="cell">
+<details>
+<summary>AD Manhattan Plot</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>AD_path <span class="ot">=</span> <span class="st">"resources/genetic_epi/summary_statistics/Kunkle2019load_stage123.chrall.CPRA_b37.tsv.gz"</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>AD_ss <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(AD_path, <span class="at">comment =</span> <span class="st">"##"</span>,  <span class="at">col_types =</span> coltypes, </span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                       <span class="at">col_select =</span> <span class="fu">c</span>(DBSNP_ID, CHROM, POS, REF, ALT, AF, BETA, SE, Z, P, N, TRAIT))</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter on p &lt; 0.5 to reduce compute</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>kunkle2019load.man <span class="ot">&lt;-</span> <span class="fu">ggman</span>(<span class="fu">filter</span>(AD_ss, P <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> P <span class="sc">&gt;</span> <span class="fl">1e-100</span>), </span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                            <span class="at">snp =</span> <span class="st">"DBSNP_ID"</span>, <span class="at">bp =</span> <span class="st">"POS"</span>, <span class="at">chrom =</span> <span class="st">"CHROM"</span>, <span class="at">pvalue =</span> <span class="st">"P"</span>, <span class="at">relative.positions =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                           <span class="at">title =</span> <span class="st">"AD - Kunkle 2019"</span>) <span class="sc">+</span> </span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">'results/figures/Kunkle2019load_ggman.png'</span>, <span class="at">plot =</span> kunkle2019load.man, <span class="at">units =</span> <span class="st">'in'</span>, <span class="at">width =</span> <span class="dv">9</span>, <span class="at">height =</span> <span class="dv">4</span>)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co"># HM3</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>Kunkle_hm3 <span class="ot">&lt;-</span> AD_ss <span class="sc">%&gt;%</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">semi_join</span>(hm3, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">'DBSNP_ID'</span> <span class="ot">=</span> <span class="st">'SNP'</span>))</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="fu">write_tsv</span>(Kunkle_hm3, <span class="st">'work/summary_statistics/Kunkle2019load_hm3.tsv.gz'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../results/figures/Kunkle2019load_ggman.png" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">Kunkle2019load_ggman</figcaption>
+</figure>
+</div>
+</section>
+<section id="bellenguez-2022" class="level3">
+<h3 class="anchored" data-anchor-id="bellenguez-2022">Bellenguez 2022</h3>
+<p>A GWAS of Alzheimer’s disease and related dementias conducted using 111,326 clinically diagnosed/‘proxy’ AD cases and 677,663 controls that identified 75 risk loci, of which 42 were novel.</p>
+<p>Bellenguez, C. et al.&nbsp;New insights into the genetic etiology of Alzheimer’s disease and related dementias. <a href="https://www.nature.com/articles/s41588-022-01024-z">Nat Genet 54, 412–436 (2022)</a>.</p>
+<p>Summary statistics</p>
+<ol type="1">
+<li>Alzheimer’s disease and related dementias (ADRD)</li>
+</ol>
+<div class="cell">
+<details>
+<summary>ADRD Manhattan Plot</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ADRD_path <span class="ot">=</span> <span class="st">"resources/genetic_epi/summary_statistics/Bellenguez2022load.chrall.CPRA_b37.tsv.gz"</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>ADRD_ss <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(ADRD_path, <span class="at">comment =</span> <span class="st">"##"</span>,  <span class="at">col_types =</span> coltypes, </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>                       <span class="at">col_select =</span> <span class="fu">c</span>(DBSNP_ID, CHROM, POS, REF, ALT, AF, BETA, SE, Z, P, N, TRAIT))</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter on p &lt; 0.5 to reduce compute</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>adard.man <span class="ot">&lt;-</span> <span class="fu">ggman</span>(<span class="fu">filter</span>(ADRD_ss, P <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> P <span class="sc">&gt;</span> <span class="fl">1e-100</span>), </span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">snp =</span> <span class="st">"DBSNP_ID"</span>, <span class="at">bp =</span> <span class="st">"POS"</span>, <span class="at">chrom =</span> <span class="st">"CHROM"</span>, <span class="at">pvalue =</span> <span class="st">"P"</span>, <span class="at">relative.positions =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>                   <span class="at">title =</span> <span class="st">"ADRD - Bellenguez 2022"</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                   ) <span class="sc">+</span> </span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">'results/figures/Bellenguez2022load_ggman.png'</span>, <span class="at">plot =</span> adard.man, <span class="at">units =</span> <span class="st">'in'</span>, <span class="at">width =</span> <span class="dv">9</span>, <span class="at">height =</span> <span class="dv">4</span>)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co"># HM3</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>ADRD_hm3 <span class="ot">&lt;-</span> ADRD_ss <span class="sc">%&gt;%</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">semi_join</span>(hm3, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">'DBSNP_ID'</span> <span class="ot">=</span> <span class="st">'SNP'</span>))</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="fu">write_tsv</span>(ADRD_hm3, <span class="st">'work/summary_statistics/Bellenguez2022load_hm3.tsv.gz'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../results/figures/Bellenguez2022load_ggman.png" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">Bellenguez2022load_ggman</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="educational-attainment" class="level2">
+<h2 class="anchored" data-anchor-id="educational-attainment">Educational Attainment</h2>
+<section id="lee-et-al-2018" class="level3">
+<h3 class="anchored" data-anchor-id="lee-et-al-2018">Lee et al 2018</h3>
+<p>A large-scale genetic association analysis of educational attainment in a sample of approximately 1.1 million individuals and identify 1,271 independent genome-wide-significant SNPs</p>
+<p>Lee, J. J. et al.&nbsp;Gene discovery and polygenic prediction from a genome-wide association study of educational attainment in 1.1 million individuals. <a href="https://www.nature.com/articles/s41588-018-0147-3">Nat Genet 50, 1112–1121 (2018)</a>.</p>
+<p>Summary statistics</p>
+<ol type="1">
+<li>Years of Education</li>
+</ol>
+<div class="cell">
+<details>
+<summary>Education Manhattan Plot</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>educ_path <span class="ot">=</span> <span class="st">"resources/genetic_epi/summary_statistics/Lee2018educ.chrall.CPRA_b37.tsv.gz"</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>educ_ss <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(educ_path, <span class="at">comment =</span> <span class="st">"##"</span>,  <span class="at">col_types =</span> coltypes, </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>                       <span class="at">col_select =</span> <span class="fu">c</span>(DBSNP_ID, CHROM, POS, REF, ALT, AF, BETA, SE, Z, P, N, TRAIT))</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter on p &lt; 0.5 to reduce compute</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>educ.man <span class="ot">&lt;-</span> <span class="fu">ggman</span>(<span class="fu">filter</span>(educ_ss, P <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> P <span class="sc">&gt;</span> <span class="fl">1e-100</span>), </span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">snp =</span> <span class="st">"DBSNP_ID"</span>, <span class="at">bp =</span> <span class="st">"POS"</span>, <span class="at">chrom =</span> <span class="st">"CHROM"</span>, <span class="at">pvalue =</span> <span class="st">"P"</span>, <span class="at">relative.positions =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>                   <span class="at">title =</span> <span class="st">"Education - Lee 2018"</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>                   ) <span class="sc">+</span> </span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">'results/figures/Lee2018educ_ggman.png'</span>, <span class="at">plot =</span> educ.man, <span class="at">units =</span> <span class="st">'in'</span>, <span class="at">width =</span> <span class="dv">9</span>, <span class="at">height =</span> <span class="dv">4</span>)</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="co"># HM3</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>educ_hm3 <span class="ot">&lt;-</span> educ_ss <span class="sc">%&gt;%</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">semi_join</span>(hm3, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">'DBSNP_ID'</span> <span class="ot">=</span> <span class="st">'SNP'</span>))</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="fu">write_tsv</span>(educ_hm3, <span class="st">'work/summary_statistics/Lee2018educ_hm3.tsv.gz'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../results/figures/Lee2018educ_ggman.png" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">Lee2018educ_ggman</figcaption>
+</figure>
+</div>
 
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -275,9 +585,23 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     icon: icon
   };
   anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
   const clipboard = new window.ClipboardJS('.code-copy-button', {
-    target: function(trigger) {
-      return trigger.previousElementSibling;
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
     }
   });
   clipboard.on('success', function(e) {
@@ -342,6 +666,92 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       return note.innerHTML;
     });
   }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
   const findCites = (el) => {
     const parentEl = el.parentElement;
     if (parentEl) {
