@@ -7,3 +7,145 @@ editor_options:
 ---
 
 # Summary Statistics {.unnumbered}
+
+```{r}
+#| label: packages
+#| code-fold: true
+#| code-summary: Load R Packages
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+
+library(tidyverse)    # Data wrangling 
+library(TwoSampleMR)  # MR 
+library(ggman)
+
+# Define column types for summary statistics
+coltypes = cols(
+  ID = col_character(),
+  CHROM = col_double(),
+  POS = col_double(),
+  REF = col_character(),
+  ALT = col_character(),
+  AF = col_double(),
+  TRAIT = col_character(),
+  BETA = col_double(),
+  SE = col_double(),
+  Z = col_double(),
+  P = col_double(),
+  N = col_double(),
+  OR = col_double(),
+  OR_L95 = col_double(),
+  OR_U95 = col_double(),
+  DIR = col_character(),
+  G1000_ID = col_character(),
+  G1000_VARIANT = col_character(),
+  DBSNP_ID = col_character(),
+  DBSNP_VARIANT = col_character(),
+  OLD_ID = col_character(),
+  OLD_VARIANT = col_character()
+)
+
+```
+
+## Lipids
+A GWAS of low-density lipoprotein (LDL) cholesterol, high-density lipoprotein (HDL) cholesterol, triglycerides and total cholesterol levels conducted in 188,577 individuals that identified 157 loci were associated with lipid levels.
+
+Willer, C. J. et al. Discovery and refinement of loci associated with lipid levels. [Nat Genet 45, 1274–83 (2013)](https://www.nature.com/articles/ng.2797).
+
+Summary statistics 
+
+1. LDL Cholesterol
+2. HDL Cholesterol
+3. Triglycerides
+4. Total cholesterol
+
+```{r}
+#| label: tc_manhattan
+#| code-fold: true
+#| code-summary: LDL Cholesterol Manhattan
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+
+ldl_path = "resources/genetic_epi/summary_statistics/Willer2013ldl.chrall.CPRA_b37.tsv.gz"
+ldl_ss <- read_tsv(ldl_path, comment = "##", col_types = coltypes, 
+                        col_select = c(DBSNP_ID, CHROM, POS, REF, ALT, AF, BETA, SE, Z, P, N, TRAIT))
+
+# Filter on p < 0.5 to reduce compute
+ggman(filter(ldl_ss, P < 0.05 & P > 1e-100), snp = "DBSNP_ID", bp = "POS", chrom = "CHROM", pvalue = "P", relative.positions = TRUE) + 
+  theme_classic()
+
+```
+
+
+A GWAS of low-density lipoprotein (LDL) cholesterol, high-density lipoprotein (HDL) cholesterol, triglycerides and total cholesterol levels conducted using a multi-ancestry, genome-wide genetic discovery meta-analysis of lipid levels in approximately 1.65 million individuals, including 350,000 of non-European ancestries that found 773 lipid-associated genomic regions that contained 1,765 distinct index variants that reached genome-wide significance for at least 1 ancestry group and lipid trait
+
+Graham, S. E. et al. The power of genetic diversity in genome-wide association studies of lipids. [Nature 600, 675–679 (2021)](https://www.nature.com/articles/s41586-021-04064-3).
+
+Summary Statistics
+
+1. 
+2. 
+3. 
+4. 
+
+## Alzheimer's disease 
+A GWAS of Alzheimer’s disease conducted in 94,437 indivudles by the International Genomics Alzheiemr’s Project that identified 20 genome-wide signiﬁcant loci. 
+
+Kunkle, B. W. et al. Genetic meta-analysis of diagnosed Alzheimer’s disease identifies new risk loci and implicates Aβ, tau, immunity and lipid processing. [Nat Genet 51, 414–430 (2019)](https://www.nature.com/articles/s41588-019-0358-2).
+
+
+Summary statistics 
+
+1. Late-onset Alzheimer's disease (LOAD)
+
+
+```{R}
+#| label: AD_manhattan_plot
+#| code-fold: true
+#| code-summary: AD Manhattan Plot
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+
+AD_path = "resources/genetic_epi/summary_statistics/Kunkle2019load_stage123.chrall.CPRA_b37.tsv.gz"
+AD_ss <- read_tsv(AD_path, comment = "##",  col_types = coltypes, 
+                       col_select = c(DBSNP_ID, CHROM, POS, REF, ALT, AF, BETA, SE, Z, P, N, TRAIT))
+
+# Filter on p < 0.5 to reduce compute
+ggman(filter(AD_ss, P < 0.05 & P > 1e-100), snp = "DBSNP_ID", bp = "POS", chrom = "CHROM", pvalue = "P", relative.positions = TRUE) + 
+  theme_classic()
+
+```
+
+
+A GWAS of Alzheimer's disease and related dementias conducted using 111,326 clinically diagnosed/‘proxy’ AD cases and 677,663 controls that identified 75 risk loci, of which 42 were novel.
+
+Bellenguez, C. et al. New insights into the genetic etiology of Alzheimer’s disease and related dementias. [Nat Genet 54, 412–436 (2022)](https://www.nature.com/articles/s41588-022-01024-z).
+
+Summary statistics 
+
+1. Alzheimer's disease and related dementias (ADRD)  
+
+```{r}
+#| label: ADRD_manhattan_plot
+#| code-fold: true
+#| code-summary: ADRD Manhattan Plot
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+
+ADRD_path = "resources/genetic_epi/summary_statistics/Kunkle2019load_stage123.chrall.CPRA_b37.tsv.gz"
+ADRD_ss <- read_tsv(ADRD_path, comment = "##",  col_types = coltypes, 
+                       col_select = c(DBSNP_ID, CHROM, POS, REF, ALT, AF, BETA, SE, Z, P, N, TRAIT))
+
+# Filter on p < 0.5 to reduce compute
+ggman(filter(ADRD_ss, P < 0.05 & P > 1e-100), snp = "DBSNP_ID", bp = "POS", chrom = "CHROM", pvalue = "P", relative.positions = TRUE) + 
+  theme_classic()
+
+```

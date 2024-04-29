@@ -599,9 +599,15 @@ tbl_use <-  out_admix %>%
   pivot_longer(all_of(c('AFR', 'AMR', 'EAS', 'EUR', 'OCE', 'SAS')), names_to = "Cluster", values_to = "prop" ) |>
   mutate(spop = ifelse(genetic_region == "CSA", "SAS", genetic_region)) 
 
+tbl_use <-  out_admix %>% 
+  filter(partition == "sample") %>%
+  pivot_longer(all_of(c('k1', 'k2', 'k3', 'k4', 'k5', 'k6', 'k7', 'k8', 'k9', 'k9', 'k10', 'k11', 'k12')), names_to = "Cluster", values_to = "prop" ) |>
+  mutate(spop = ifelse(genetic_region == "CSA", "SAS", genetic_region)) 
+
+
 admixture.p <- ggplot(tbl_use, aes(x = ID, y = prop, fill = Cluster)) +
     geom_bar(position = "fill", stat = "identity", width = 1) +
-    scale_fill_manual(values = color_vector) + 
+    # scale_fill_manual(values = color_vector) + 
     theme_classic() +
     labs(x = "Individual", y = "Global Ancestry", color = "Cluster") +
     theme(
