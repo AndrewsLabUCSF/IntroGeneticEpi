@@ -36,6 +36,8 @@ Genetic correlation (rg) refers to the degree to which the genetic determinants 
 
 **HDL:** High-definition likelihood (HDL) provides genetic correlation estimates that have higher accuracy and precision compared to LDSC. HDL achives this by using a full likelihood-based method that leverages LD information across the whole genome, where as LDSC only use partial information. 
 
+
+## Munge
 Here we will be using LDSC and HDL implemented using [GenomicSEM](https://github.com/GenomicSEM/GenomicSEM) - make sure to have it installed. 
 
 You will need to make sure the following summary statistics are in `resources/genetic_epi/summary_statistics/`
@@ -45,13 +47,21 @@ You will need to make sure the following summary statistics are in `resources/ge
 - `Kunkle2019load_stage123.chrall.CPRA_b37.tsv.gz`
 - `Bellenguez2022load.chrall.CPRA_b37.tsv.gz`
 
-And that the LD Reference Panels are avaliable in `resources/genetic_epi/ld_ref/`
+::: {.callout-warning}
+With large GWAS summary statistic files your local machine may run out of memory. There are also HapMap3 filtered summary statistic files avaliable
+
+- work/summary_statistics/Willer2013ldl_hm3.tsv.gz
+- work/summary_statistics/Graham2021ldl_hm3.tsv.gz
+- work/summary_statistics/Kunkle2019load_hm3.tsv.gz
+- work/summary_statistics/Bellenguez2022load_hm3.tsv.gz
+
+You may also need to apply `GenomicSEM::munge` to a single summary statistic file at a time
+:::
+
+And that the LD Reference Panels are available in `resources/genetic_epi/ld_ref/`
 
 First we need to munge the GWAS summary statistics so they are in the format required for LDSC. 
 
-::: {.callout-warning}
-With large GWAS summary statistic files your local machine may run out of memory. 
-:::
 
 ```{r}
 #| label: Munge
@@ -62,11 +72,17 @@ With large GWAS summary statistic files your local machine may run out of memory
 #| message: false
 #| eval: false
 
-## Summary statistics 
-Willer2013ldl = "resources/genetic_epi/summary_statistics/Willer2013ldl.chrall.CPRA_b37.tsv.gz"
-Graham2021ldl = "resources/genetic_epi/summary_statistics/Graham2021ldl.chrall.CPRA_b37.tsv.gz"
-KunkleAD = "resources/genetic_epi/summary_statistics/Kunkle2019load_stage123.chrall.CPRA_b37.tsv.gz"
-BellenguezAD = "resources/genetic_epi/summary_statistics/Bellenguez2022load.chrall.CPRA_b37.tsv.gz"
+## Summary statistics - full summary stats, may cause memory failure
+# Willer2013ldl = "resources/genetic_epi/summary_statistics/Willer2013ldl.chrall.CPRA_b37.tsv.gz"
+# Graham2021ldl = "resources/genetic_epi/summary_statistics/Graham2021ldl.chrall.CPRA_b37.tsv.gz"
+# KunkleAD = "resources/genetic_epi/summary_statistics/Kunkle2019load_stage123.chrall.CPRA_b37.tsv.gz"
+# BellenguezAD = "resources/genetic_epi/summary_statistics/Bellenguez2022load.chrall.CPRA_b37.tsv.gz"
+
+## Summary statistics - HapMap3 filtered SNPs
+Willer2013ldl = "work/summary_statistics/Willer2013ldl_hm3.tsv.gz"
+Graham2021ldl = "work/summary_statistics/Graham2021ldl_hm3.tsv.gz"
+KunkleAD = "work/summary_statistics/Kunkle2019load_hm3.tsv.gz"
+BellenguezAD = "work/summary_statistics/Bellenguez2022load_hm3.tsv.gz"
 
 ## LD Structure 
 ld_path = "resources/genetic_epi/ld_ref/eur_w_ld_chr/"
@@ -93,6 +109,7 @@ GenomicSEM::munge(
 
 ```
 
+## LDSC 
 We can then apply LDSC to estimate h2 and pairwise rg. As we are using binary outcomes, we need to specify sample and population prevalence. 
 
 | Trait Name     | Sample Prevalence | Population Prevalence |
@@ -124,6 +141,57 @@ ldsc.covstruct <- GenomicSEM::ldsc(
 
 ```
 
+```{r}
+#| label: h2
+#| code-fold: true
+#| code-summary: h2
+#| warning: false
+#| error: false
+#| echo: false
+#| message: false
+#| eval: false
+
+h2 <- tribble(
+  ~trait, ~h2, ~se,
+  "Willer2013ldl", 0.0638, 0.0094,
+  "Graham2021ldl", 0.075, 0.0082,
+  "BellenguezAD", 0.048, 0.0072,
+  "KunkleAD", 0.0971, 0.0206,
+)
+
+```
+
+```{r}
+#| label: res
+#| code-fold: true
+#| code-summary: h2 and rg results
+#| warning: false
+#| error: false
+#| echo: false
+#| message: false
+#| eval: false
+
+h2 <- tribble(
+  ~trait, ~h2, ~se,
+  "Willer2013ldl", 0.0638, 0.0094,
+  "Graham2021ldl", 0.075, 0.0082,
+  "BellenguezAD", 0.048, 0.0072,
+  "KunkleAD", 0.0971, 0.0206,
+)
+
+rg <- tribble(
+  ~trait1, ~trait2, ~rg, ~se, ~p, 
+  "Willer2013ldl", "Graham2021ldl", 0.9964, 0.1219, 2.906e-16,
+  "Willer2013ldl", "BellenguezAD", -0.0675, 0.0499, 0.17577,
+  "Willer2013ldl", "KunkleAD", 0.0215, 0.0662, 0.74536,
+  "Graham2021ldl", "KunkleAD", 0.023, 0.0082, 0.62032,
+  "Graham2021ldl", "BellenguezAD", -0.0155, 0.1478, 0.64178, 
+  "BellenguezAD", "KunkleAD", 0.9523, 0.1478, 1.1707e-10
+)
+
+```
+
+## HDL
 We can then apply HDL to estimate h2 and pairwise rg.
 
 ```{r}
