@@ -1,0 +1,464 @@
+---
+output: html_document
+execute: 
+  freeze: auto
+editor_options: 
+  chunk_output_type: console
+---
+# PRSice-2 {.unnumbered}
+
+[PRSice-2](https://choishingwan.github.io/PRSice/) implements a Pruning and thresholding model to construct polygenic risk scores (PRS). Pruning involves removing closely linked genetic variants to reduce redundancy and potential bias due to linkage disequilibrium, ensuring that the most independent and informative markers are used. Thresholding, on the other hand, selects variants based on their p-values from GWAS, allowing only those variants that meet a specified significance threshold to contribute to the PRS. 
+
+Choi SW, and O’Reilly PF. "PRSice-2: Polygenic Risk Score Software for Biobank-Scale Data." [GigaScience 8, no. 7 (July 1, 2019)](https://doi.org/10.1093/gigascience/giz082).
+
+## Estimate AD-PRS
+Here we will estimate three Alzheimer's disease PRS using different base GWAS. 
+
+- Kunkle et al 2019. Clinicaly diagnosed AD 
+- Bellenguez et al 2022. Alzheimer's disease and related dementias
+- Laket et al 2023. Multi-ancestry meta analysis (MAMA) of Alzheimer's disease and related dementias
+
+We are constructing the PRS across nine different P-value thresholds (5e-8, 1e-7, 1e-6, 1e-5, 1e-4, 0.001, 0.01, 0.1, 0.5, 1) and apply a clumping process with a window size of 250kb and an r2 > 0.1.  
+
+::: {.callout-warning}
+It is crucial to ensure that both the base and target datasets use the same human genome build. To achieve this, we have used MungeSummstats to liftover all summary statistics to build 38.
+:::
+
+
+### AD-PRS (Kunkle 2019)
+
+```{bash}
+#| label: ad_prs
+#| code-fold: true
+#| code-summary: AD-PRS PRSice
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+
+Rscript bin/PRSice.R --dir . \
+    --prsice bin/PRSice \
+    --base work/summary_statistics/Kunkle2019load_b38.tsv.gz \
+    --snp SNP \
+    --chr CHR \
+    --bp BP \
+    --A1 A2 \
+    --A2 A1 \
+    --stat BETA \
+    --pvalue P \
+    --target work/habshd_gwas \
+    --pheno work/habshd_gwas.pheno \
+    --cov work/habshd_gwas.covar \
+    --thread 1 \
+    --clump-kb 250kb \
+    --clump-p 1.000000 \
+    --clump-r2 0.100000 \
+    --bar-levels 5e-8,1e-7,1e-6,1e-5,1e-4,0.001,0.01,0.1,0.5,1 \
+    --fastscore \
+    --no-default \
+    --binary-target F \
+    --all-score \
+    --out work/Kunkle
+
+```
+
+### ADRD-PRS (Bellenguez 2022)
+```{bash}
+#| label: adrd_prs
+#| code-fold: true
+#| code-summary: ADRD-PRS PRSice
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+
+Rscript bin/PRSice.R --dir . \
+    --prsice bin/PRSice \
+    --base work/summary_statistics/Bellenguez20202adrd_b38.tsv.gz \
+    --snp SNP \
+    --chr CHR \
+    --bp BP \
+    --A1 A2 \
+    --A2 A1 \
+    --stat BETA \
+    --pvalue P \
+    --target work/habshd_gwas \
+    --pheno work/habshd_gwas.pheno \
+    --cov work/habshd_gwas.covar \
+    --thread 1 \
+    --clump-kb 250kb \
+    --clump-p 1.000000 \
+    --clump-r2 0.100000 \
+    --bar-levels 5e-8,1e-7,1e-6,1e-5,1e-4,0.001,0.01,0.1,0.5,1 \
+    --fastscore \
+    --no-default \
+    --binary-target F \
+    --all-score \
+    --out work/Bellenguez
+
+```
+
+### MAMA-PRS (Lake 2023)
+```{bash}
+#| label: mama_prs
+#| code-fold: true
+#| code-summary: MAMA-PRS PRSice
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+
+Rscript bin/PRSice.R --dir . \
+    --prsice bin/PRSice \
+    --base work/summary_statistics/Lake2023adrd_b38.tsv.gz \
+    --snp SNP \
+    --chr CHR \
+    --bp BP \
+    --A1 A2 \
+    --A2 A1 \
+    --stat BETA \
+    --pvalue P \
+    --target work/habshd_gwas \
+    --pheno work/habshd_gwas.pheno \
+    --cov work/habshd_gwas.covar \
+    --thread 1 \
+    --clump-kb 250kb \
+    --clump-p 1.000000 \
+    --clump-r2 0.100000 \
+    --bar-levels 5e-8,1e-7,1e-6,1e-5,1e-4,0.001,0.01,0.1,0.5,1 \
+    --fastscore \
+    --no-default \
+    --binary-target F \
+    --all-score \
+    --out work/Lake
+
+```
+
+## HABS-HD 
+
+We will now evaluate the association each AD-PRS with the Clinical Dementia Rating Scale and cognitive impairment.
+
+```{r}
+#| label: packages
+#| code-fold: true
+#| code-summary: Import Packages
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+
+library(tidyverse)
+library(pROC)
+# library(janitor)
+# library(broom)
+# library(performance)
+
+```
+
+
+```{r}
+#| label: data
+#| code-fold: true
+#| code-summary: Import and munge data
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+
+# File paths
+pheno_path = "work/habshd_pheno.csv"
+pcs_path = 'work/habs_pca.tsv'
+ad_prs_path = 'work/prsice/Kunkle.all_score'
+# adrd_prs_path = 'work/prsice/Bellenguez.all_score'
+# mama_prs_path = 'work/prsice/Lake.all_score'
+
+## HABS-HD Phenotypes
+habshd <- read_csv(pheno_path) %>% distinct(med_id, .keep_all = T)
+
+## Genetic Ancestry & PCs
+pcs <- read_tsv(pcs_path) %>%
+  filter(superpop == "HABS-HD") %>%
+  select(-Population, -cohort, -superpop, -FID) %>%
+  mutate(IID = as.numeric(IID)) %>%
+  rename(superpop = superpop_infered) %>%
+  filter(superpop != 'EAS')
+
+## PRS  
+prs <- read_table(ad_prs_path) %>%
+  janitor::clean_names() %>%
+  select(-fid)
+
+## Merge datasets
+dat <- habshd %>%
+  left_join(pcs, by = c('med_id' = 'IID')) %>%
+  left_join(prs, by = c('med_id' = 'iid')) %>%
+  filter(!is.na(pt_5e_08) & !is.na(superpop)) %>%
+  mutate(
+    z_prs = scale(pt_5e_08)[,1],
+    # z_prs = scale(pt_0_1)[,1],
+    race = fct_relevel(race, "NHW"), 
+    superpop = fct_relevel(superpop, "EUR"), 
+    dx = fct_recode(as.factor(cdx_cog), 'ctrl' = '0', 'case' = '1', 'case' = '2'), 
+    dx = fct_relevel(dx, 'ctrl'), 
+    apoe = fct_recode(apoe4_snp, 
+                      'e2+' = 'E2E2', 'e2+' = 'E2E3',  
+                      'e4+' = 'E3E4', 'e4+' = 'E2E4', 'e4+' = 'E4E4', 
+                      'e3/e3' = 'E3E3'
+                      ), 
+    apoe = fct_relevel(apoe, 'e3/e3')
+  ) 
+
+```
+
+### PRS Distribution 
+
+- What is the distribution of the AD-PRS across cases and controls? 
+- What is the relationship between AD-PRS and CDR
+
+```{r}
+#| label: PRS
+#| code-fold: true
+#| code-summary: PRS
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+#| echo: true
+
+## Violin Plots - DX
+ggplot(dat, aes(x = dx, y = z_prs, fill = dx)) + 
+  geom_violin() + 
+  geom_boxplot(width = 0.2, outliers = FALSE, fill = 'white') +
+  theme_bw()
+
+## Density Plots - DX
+ggplot(dat, aes(x = z_prs, fill = dx)) + 
+  geom_density(alpha = 0.5) + 
+  theme_bw()
+
+## Scatter plot - CDR
+ggplot(dat, aes(x = cdr_sum, y = z_prs)) + 
+  geom_point() + 
+  geom_smooth(method = 'lm') + 
+  theme_bw()
+
+## Violin Plots - super_pop
+ggplot(dat, aes(x = superpop, y = z_prs, fill = superpop)) + 
+  geom_violin() + 
+  geom_boxplot(width = 0.2, outliers = FALSE, fill = 'white') +
+  theme_bw()
+
+```
+
+### Predictive ability 
+- What is the association of the AD-PRS with cognitive impairment
+
+
+```{r}
+#| label: OR
+#| code-fold: true
+#| code-summary: OR
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+#| echo: true
+
+reduced_mod <- glm(dx ~ age + id_gender + PC1 + PC2 + PC3 + PC4, 
+    data = dat, family = 'binomial')
+
+full_mod <- glm(dx ~ z_prs + age + id_gender + PC1 + PC2 + PC3 + PC4, 
+    data = dat, family = 'binomial')
+
+broom::tidy(full_mod, exponentiate = T, conf.int = T)
+```
+
+### Predictive accuracy 
+- What is the R2 of the reduced model containing only covariates (age, sex and PC1-4)?
+- What is the R2 of the full model including the AD-PRS (age, sex and PC1-4)?
+
+```{r}
+#| label: R2
+#| code-fold: true
+#| code-summary: R2
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+#| echo: true
+
+reduced_r2 <- performance::r2_nagelkerke(reduced_mod)
+full_r2 <- performance::r2_nagelkerke(full_mod)
+
+tribble(
+  ~reduced, ~full, ~diff,
+  reduced_r2, full_r2, full_r2 - reduced_r2
+) 
+```
+
+### Discrimination 
+- What is the AUC of the reduced model containing only covariates (age, sex and PC1-4)?
+- What is the AUC of the full model including the AD-PRS (age, sex and PC1-4)?
+
+```{r}
+#| label: AUC
+#| code-fold: true
+#| code-summary: AUC
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+#| echo: true
+
+# Predict probabilities
+probabilities_full <- predict(full_mod, type = "response")
+probabilities_reduced <- predict(full_mod, type = "response")
+
+# Calculate AUC
+roc_curve_full <- roc(response = dat$dx, predictor = probabilities_full)
+roc_curve_reduced <- roc(response = dat$dx, predictor = probabilities_reduced)
+
+auc(roc_curve_full)
+auc(roc_curve_reduced)
+
+ggroc(roc_curve_full) + 
+  geom_abline(slope = 1, intercept = 1, linetype = 2) + 
+  theme_bw()
+```
+
+### Calibration 
+```{r}
+#| label: calibration
+#| code-fold: true
+#| code-summary: Calibration
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+#| echo: true
+
+probs <- dat %>% 
+  select(med_id, dx) %>%
+  mutate(
+    predicted = probabilities_full
+  ) %>%
+  mutate(prob_bin = cut(predicted, breaks = seq(0, 1, by = 0.1), include.lowest = TRUE))
+
+cal_plot_breaks(probs, dx, predicted)
+
+dat2$predicted_probs <- predict(full_mod, type = "response")
+
+dat2 <- probs  %>%
+  group_by(prob_bin) %>%
+  summarise(observed_mean = mean(dx),
+            # predicted_mean = mean(predicted),
+            .groups = 'drop')
+
+## 
+
+glm(dx ~ z_prs + age + id_gender + id_education + PC1 + PC2 + PC3 + PC4, 
+                data = dat %>% filter(race == 'Hispanic'), family = 'binomial') %>%
+  broom::tidy()
+
+lm(cdr_sum ~ z_prs + age + id_gender + PC1 + PC2 + PC3 + PC4, 
+   data = dat %>% filter(superpop == 'AFR')) %>%
+  broom::tidy()
+
+
+```
+
+
+```{r}
+#| label: test1
+#| code-fold: true
+#| code-summary: Import Packages
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+#| echo: false
+
+lm(cdr_sum ~ z_prs + age + id_gender + race + PC1 + PC2 + PC3 + PC4, 
+   data = dat) %>%
+  broom::tidy()
+```
+
+
+```{r}
+#| label: test2
+#| code-fold: true
+#| code-summary: Import Packages
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+#| echo: false
+
+full_mod <- glm(dx ~ z_prs + age + id_gender + id_education + race + PC1 + PC2 + PC3 + PC4, 
+    data = dat, family = 'binomial')
+
+broom::tidy(full_mod)
+
+nagelkerke_r2 <- performance::r2_nagelkerke(full_mod)
+print(nagelkerke_r2)
+
+library(pROC)
+
+# Predict probabilities
+probabilities <- predict(full_mod, type = "response")
+
+# Calculate AUC
+roc_curve <- roc(response = dat$dx, predictor = probabilities)
+auc_value <- auc(roc_curve)
+print(auc_value)
+
+## Calibration 
+dat2 <- dat
+dat2$predicted_probs <- predict(full_mod, type = "response")
+
+dat2 <- dat2 %>%
+  mutate(prob_bin = cut(predicted_probs, breaks = seq(0, 1, by = 0.1), include.lowest = TRUE)) %>%
+  group_by(prob_bin) %>%
+  summarise(observed_mean = mean(dx),
+            predicted_mean = mean(predicted_probs),
+            .groups = 'drop')
+
+## 
+
+glm(dx ~ z_prs + age + id_gender + id_education + PC1 + PC2 + PC3 + PC4, 
+                data = dat %>% filter(race == 'Hispanic'), family = 'binomial') %>%
+  broom::tidy()
+
+lm(cdr_sum ~ z_prs + age + id_gender + PC1 + PC2 + PC3 + PC4, 
+   data = dat %>% filter(superpop == 'AFR')) %>%
+  broom::tidy()
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

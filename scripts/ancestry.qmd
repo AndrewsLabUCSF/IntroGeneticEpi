@@ -411,7 +411,7 @@ in_fam_ref <- 'work/gnomad-hgdp-1kg_pruned_habshd.hg38.fam'
 in_q_samp <- 'work/habshd_merged_gnomad-hgdp-1kg.hg38.12.Q'
 in_fam_samp <- 'work/habshd_merged_gnomad-hgdp-1kg.hg38.fam'
 in_pops <- 'work/hgdp_1kg.popdata.tsv.gz'
-out_anc <- 'work/admixture_cohort-habshd_ref-gnomad-hgdp-1kg.hg38.tsv'
+out_anc <- 'work/habshd_genetic_ancestry.tsv'
 
 # Fam and popfiles
 ## ======================================##

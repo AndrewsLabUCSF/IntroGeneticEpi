@@ -23,9 +23,9 @@ book:
         - scripts/gwas_ss.qmd
         - scripts/ancestry.qmd
         - scripts/genetic_corr.qmd
-    - part: "Polygenic Risk Scores"
+    - part: scripts/prs.qmd
       chapters:
-        - scripts/prs.qmd
+        - scripts/prsice.qmd
     - part: "Mendelian Randomization"
       chapters:
         - scripts/mr.qmd

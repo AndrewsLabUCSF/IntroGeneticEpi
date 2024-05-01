@@ -197,6 +197,14 @@ curl https://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/GCST90027001-GC
 ```
 
 ```{r}
+#| label: Bellenguez
+#| code-fold: true
+#| code-summary: Bellenguez
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+#| echo: false
 
 bellenguez.raw <- read_table('resources/GCST90027158_buildGRCh38.tsv.gz')
 
@@ -264,6 +272,14 @@ curl https://personal.broadinstitute.org/ryank/CARD_2023_Bellenguez.onlyEuroProx
 ```
 
 ```{r}
+#| label: Lake
+#| code-fold: true
+#| code-summary: Lake
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+#| echo: false
 
 lake.raw <- read_table('resources/CARD_2023_Bellenguez.onlyEuroProxies.noFEbefore.0.01.meta.locuszoom.tsv.gz')
 
