@@ -9,10 +9,23 @@ editor_options:
 
 Polygenic risk scores, Two-sample Mendelian Randomization, and Genetic Correlation methods require the use of summary statistics from genome-wide association studies, including single nucleotide polymorphisms (SNPs), beta coefficients, standard errors, p-values, and allele frequencies. However, the historical lack of standards for data content and file formats in GWAS summary statistics has resulted in heterogeneous data sets. To address this issue, standardizing and harmonizing the GWAS summary statistics is crucial before conducting MR analyses. The [GWAS Catalog](https://www.ebi.ac.uk/gwas/home) and [OpenGWAS](https://gwas.mrcieu.ac.uk/) platforms have developed formats such as GWAS-SSF (Hayhurst et al. 2022) and GWAS-VCF (Lyon et al. 2021) to facilitate sharing of GWAS SumStats. Tools like [MungeSumstats](https://neurogenomics.github.io/MungeSumstats/index.html) (Murphy et al 2021) and GWAS2VCF (Lyon et al. 2021) are available that provide rapid standardization and quality control of GWAS SumStats.
 
+## MungeSumstats
+
+```{r}
+#| eval: false
+#| label: load packages
+#| code-fold: true
+#| code-summary: Load Packages
+
+library(tidyverse)
+# library(MungeSumstats)
+```
+
+The MungeSumstats package is designed to facilitate the standardization of GWAS summary statistics. 
+
 ## AD GWAS 
-
-We download the International Genomics of Alzheimer's Project (IGAP) Alzheimer’s disease GWAS of Kunkle et al. Nat Genet, 2019. from the GWAS catalouge. These summary statistics correspond to the meta-analysis results obtained in stage 1 including genotyped and imputed data (11,480,632 variants, phase 1 integrated release 3, March 2012) of 21,982 Alzheimer’s disease cases and 41,944 cognitively normal controls.
-
+### Kunkle 2019
+We download the International Genomics of Alzheimer's Project (IGAP) Alzheimer’s disease GWAS of Kunkle et al. Nat Genet, 2019. from the [GWAS catalouge](https://www.ebi.ac.uk/gwas/studies/GCST007511). These summary statistics correspond to the meta-analysis results obtained in stage 1 including genotyped and imputed data (11,480,632 variants, phase 1 integrated release 3, March 2012) of 21,982 Alzheimer’s disease cases and 41,944 cognitively normal controls.
 
 The Summary statistics consists of the following information for each SNP and its association to Alzheimer's disease based on meta-analysis in the publication mentioned below. 
 
@@ -28,28 +41,20 @@ The Summary statistics consists of the following information for each SNP and it
 
 ```{bash}
 #| eval: false
-#| label: Download Summary Statistics
+#| label: Download Kunkle 2019 Summary Statistics
 curl https://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/GCST007001-GCST008000/GCST007511/Kunkle_etal_Stage1_results.txt > resources/Kunkle_etal_Stage1_results.txt
 ```
 
-## MungeSumstats
-
-The MungeSumstats package is designed to facilitate the standardization of GWAS summary statistics. 
-
 
 ```{r}
 #| eval: false
-#| label: load packages
-library(tidyverse)
+#| label: Munge_Kunkle
+#| code-fold: true
+#| code-summary: Munge Kunkle 2019
 
-```
+kunkle.raw <- read_table('resources/Kunkle_etal_Stage1_results.txt')
 
-```{r}
-#| eval: false
-#| label: Munge Summary statistics
-load.raw <- read_table('resources/Kunkle_etal_Stage1_results.txt')
-
-load <- load.raw %>%
+kunkle <- kunkle.raw %>%
   filter(nchar(Effect_allele) == 1 & nchar(Non_Effect_allele) == 1) %>%
   mutate(
     Ncaas = 21982,
@@ -57,23 +62,39 @@ load <- load.raw %>%
     N = 63926
   )
 
-reformatted <- 
-  MungeSumstats::format_sumstats(path=load,
-                                 ref_genome="GRCh37", 
-                                 dbSNP = 144, 
-                                 return_data = TRUE
-                                 ) %>%
+## b37
+kunkle_b37 <- MungeSumstats::format_sumstats(path=kunkle,
+                                             ref_genome="GRCh37",
+                                             dbSNP = 144,
+                                             return_data = TRUE
+                                             ) %>%
   as_tibble()
 
-write_tsv(reformatted, 'work/Kunkle2019load.tsv.gz')
+write_tsv(kunkle_b37, 'work/summary_statistics/Kunkle2019load_b37.tsv.gz')
+
+## b38
+kunkle_b38 <- MungeSumstats::format_sumstats(path=kunkle,
+                                             ref_genome="GRCh37",
+                                             convert_ref_genome="GRCh38",
+                                             dbSNP = 144,
+                                             return_data = TRUE
+                                             ) %>%
+  as_tibble()
+
+write_tsv(kunkle_b38, 'work/summary_statistics/Kunkle2019load_b38.tsv.gz')
+
 ```
 
 
-## Manhattan Plot
-
 ```{r}
+#| label: AD Manhatten
+#| code-fold: true
+#| code-summary: Manhattan Plot
+#| warning: false
+#| error: false
+#| message: false
 #| eval: false
-#| label: AD Manhattan Plot
+#| echo: false
 
 load.df_p <- reformatted %>%
   filter(., P < 0.1) %>% 
@@ -135,10 +156,145 @@ load.p <- ggman::ggman(load.df_p, snp = "SNP", bp = "BP", chrom = "CHR", pvalue 
 ggsave("results/plots/kunkle2019load_manhattan_plot.png", height = 4, width = 6, units = 'in')  
 ```
 
+### Bellenguez 2022
+
+We download the IEuropean Alzheimer & Dementia Biobank (EADB) Alzheimer’s disease and related dementia (ADRD) GWAS of Bellenguez et al. Nat Genet, 2022 from the [GWAS catalouge](https://www.ebi.ac.uk/gwas/studies/GCST90027158). These summary statistics correspond to the meta-analysis results obtained in stage 1, based on 39,106 clinically diagnosed AD cases, 46,828 proxy-ADD cases, 401,577 controls and 21,101,114 variants that passed quality control
+
+The Summary statistics consists of the following information for each SNP and its association to Alzheimer's disease based on meta-analysis in the publication mentioned below. 
+
+- Chromosome: Chromosome of the SNP (Build 37, Assembly Hg19)
+- Position: Position of the SNP (Build 37, Assembly Hg19)
+- MarkerName: SNP rsID or chromosome:position:I/D if rsID not available. I/D indicates indel or deletion respectively.
+- Effect_allele: Reference allele (coded allele)
+- Non_Effect_allele: Non reference allele (non coded allele)
+- Beta: Overall estimated effect size for the effect allele
+- SE: Overall standard error for effect size estimate
+- Pvalue: Meta-analysis Pvalue using regression coefficients (beta and standard error)
+
+variant_id: rsid
+p_value: P-value 
+chromosome: Chromosome of the SNP
+base_pair_location: Position of the SNP (GRCh38)
+effect_allele: Effect allele
+other_allele: non-Effect allele
+effect_allele_frequency: Effect allele Frequency
+odds_ratio: Odds Ration
+ci_lower: Lower 95%CI of OR
+ci_upper: Upper 95%CI of OR
+beta: log odds ratio
+standard_error: : log odds ratio SE
+n_cases: Total number of cases included in the meta-analysis
+n_controls: Total number of controls included in the meta-analysis
+het_isq: I^2 statistic which measures heterogeneity on scale of 0-100% 
+het_pvalue: P-value for heterogeneity statistic
+variant_alternate_id: Marker ID with format chromosome:position:reference_allele:alternate_allele
 
 
+```{bash}
+#| eval: false
+#| label: Download Bellenguez 2022 Summary Statistics
+curl https://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/GCST90027001-GCST90028000/GCST90027158/GCST90027158_buildGRCh38.tsv.gz > resources/GCST90027158_buildGRCh38.tsv.gz
+```
+
+```{r}
+
+bellenguez.raw <- read_table('resources/GCST90027158_buildGRCh38.tsv.gz')
+
+bellenguez <- bellenguez.raw %>%
+  filter(nchar(effect_allele) == 1 & nchar(other_allele) == 1) %>%
+  filter(between(effect_allele_frequency, 0.005, 0.995)) %>%
+  mutate(
+    N = n_controls + n_cases
+  ) %>%
+  select(rsid = variant_id, p_value, chromosome, base_pair_location, effect_allele, 
+         other_allele, effect_allele_frequency, beta, standard_error, n_cases, n_controls, N)
 
 
+## b37
+bellenguez_b37 <- MungeSumstats::format_sumstats(path=bellenguez,
+                                             ref_genome="GRCh38",
+                                             convert_ref_genome="GRCh37",
+                                             dbSNP = 144,
+                                             return_data = TRUE
+                                             ) %>%
+  as_tibble()
+
+write_tsv(bellenguez_b37, 'work/summary_statistics/Bellenguez20202adrd_b37.tsv.gz')
+
+## b38
+bellenguez_b38 <- MungeSumstats::format_sumstats(path=bellenguez,
+                                             ref_genome="GRCh38",
+                                             dbSNP = 144,
+                                             return_data = TRUE
+                                             ) %>%
+  as_tibble()
+
+write_tsv(bellenguez_b38, 'work/summary_statistics/Bellenguez20202adrd_b38.tsv.gz')
+
+```
+
+### Lake et al 2023
+
+Leveraged published GWAS summary statistics from European, East Asian, and African American populations, and an additional GWAS from a Caribbean Hispanic population using previously reported genotype data to perform the largest multi-ancestry GWAS meta-analysis of Alzheimer’s disease and related dementias to date, totaling 54,233 cases, 46,828 proxy-ADD cases, and 543,127 controls.
+
+Columns in the file:
+
+- CHR: Chromosome code
+- BP: Base pair position (hg19)
+- MarkerName: SNP identifier
+- A1: Effect allele
+- A2: Non-effect allele
+- N: Number of valid studies for this SNP
+- P: Fixed-effects meta-analysis p-value
+- P(R): Random-effects meta-analysis p-value
+- OR: Fixed-effects OR estimate
+- OR(R): Random-effects OR estimate
+- Q: p-value for Cochrane's Q statistic
+- I: I^2 heterogeneity index (0-100)
+- F0: Individual study beta: Bellenguez et al
+- F1: Individual study beta: Caribbean Hispanic
+- F2: Individual study beta: FinngenR6
+- F3:	Individual study beta: Kunkle et al. 2021  
+- F4:	Individual study beta: Shigemizu et al. 2021
+
+```{bash}
+#| eval: false
+#| label: Download Lake 2023 Summary Statistics
+curl https://personal.broadinstitute.org/ryank/CARD_2023_Bellenguez.onlyEuroProxies.noFEbefore.0.01.meta.locuszoom.tsv.gz > resources/CARD_2023_Bellenguez.onlyEuroProxies.noFEbefore.0.01.meta.locuszoom.tsv.gz
+```
+
+```{r}
+
+lake.raw <- read_table('resources/CARD_2023_Bellenguez.onlyEuroProxies.noFEbefore.0.01.meta.locuszoom.tsv.gz')
+
+lake <- lake.raw %>%
+  janitor::clean_names() %>%
+  filter(nchar(a1) == 1 & nchar(a2) == 1) %>%
+  select(marker_name, chr, bp, a1, a2, BETA=beta_r, P=p_random)
+
+## b37
+lake_b37 <- MungeSumstats::format_sumstats(path=lake,
+                                             ref_genome="GRCh37",
+                                             dbSNP = 144,
+                                             impute_se = TRUE,
+                                             return_data = TRUE
+                                             ) %>%
+  as_tibble()
+
+write_tsv(lake_b37, 'work/summary_statistics/Lake2023adrd_b37.tsv.gz')
+
+## b38
+lake_b38 <- MungeSumstats::format_sumstats(path=lake,
+                                             ref_genome="GRCh37",
+                                             convert_ref_genome="GRCh38",
+                                             dbSNP = 144,
+                                             return_data = TRUE
+                                             ) %>%
+  as_tibble()
+
+write_tsv(lake_b38, 'work/summary_statistics/Lake2023adrd_b38.tsv.gz')
+
+```
 
 
 
