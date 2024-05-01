@@ -24,8 +24,29 @@ We are constructing the PRS across nine different P-value thresholds (5e-8, 1e-7
 It is crucial to ensure that both the base and target datasets use the same human genome build. To achieve this, we have used MungeSummstats to liftover all summary statistics to build 38.
 :::
 
+To run PRSice-2 we need the following files: 
+
+Base GWAS summary statistics (b38)
+- `work/summary_statistics/Kunkle2019load_b38.tsv.gz`
+- `work/summary_statistics/Bellenguez20202adrd_b38.tsv.gz`
+- `work/summary_statistics/Lake2023adrd_b38.tsv.gz`
+
+Target PLINK Files (HABS-HD b38)
+- PLINK Genotype files: `work/habshd_gwas.bim`, `work/habshd_gwas.fam`, and `work/habshd_gwas.fam` 
+- PLINK Phenotype file: `work/habshd_gwas.pheno` 
+- PLINK Covariate file: `work/habshd_gwas.covar` 
+
+PRSice-2 will generate several output files: 
+
+- `*all_scrore`: PRS for each defined Pt
+- `*prsice`: Summary statistics for Pt PRS
+- `*best`: Best Pt PRS based on R2
+- `*summary`: Sumary statistics for Best Pt PRS
 
 ### AD-PRS (Kunkle 2019)
+
+- What is the best Pt? 
+- What is the R2 for best Pt? 
 
 ```{bash}
 #| label: ad_prs
@@ -63,6 +84,10 @@ Rscript bin/PRSice.R --dir . \
 ```
 
 ### ADRD-PRS (Bellenguez 2022)
+
+- What is the best Pt? 
+- What is the R2 for best Pt? 
+
 ```{bash}
 #| label: adrd_prs
 #| code-fold: true
@@ -99,6 +124,10 @@ Rscript bin/PRSice.R --dir . \
 ```
 
 ### MAMA-PRS (Lake 2023)
+
+- What is the best Pt? 
+- What is the R2 for best Pt? 
+
 ```{bash}
 #| label: mama_prs
 #| code-fold: true
@@ -136,7 +165,11 @@ Rscript bin/PRSice.R --dir . \
 
 ## HABS-HD 
 
-We will now evaluate the association each AD-PRS with the Clinical Dementia Rating Scale and cognitive impairment.
+We will now evaluate the association each AD-PRS with the Clinical Dementia Rating Scale and cognitive impairment. We will need the following files: 
+
+- Phenotypes: `work/habshd_pheno.csv`
+- Genetic Ancestry & PCs: `work/habs_pca.tsv`
+- PRS: `work/prsice/Kunkle.all_score`, `work/prsice/Bellenguez.all_score`, or `work/prsice/Lake.all_score`
 
 ```{r}
 #| label: packages
@@ -167,7 +200,7 @@ library(pROC)
 
 # File paths
 pheno_path = "work/habshd_pheno.csv"
-pcs_path = 'work/habs_pca.tsv'
+pcs_path = 'work/habshd_pca.tsv'
 ad_prs_path = 'work/prsice/Kunkle.all_score'
 # adrd_prs_path = 'work/prsice/Bellenguez.all_score'
 # mama_prs_path = 'work/prsice/Lake.all_score'

@@ -345,8 +345,22 @@ Warning
 <p>It is crucial to ensure that both the base and target datasets use the same human genome build. To achieve this, we have used MungeSummstats to liftover all summary statistics to build 38.</p>
 </div>
 </div>
+<p>To run PRSice-2 we need the following files:</p>
+<p>Base GWAS summary statistics (b38) - <code>work/summary_statistics/Kunkle2019load_b38.tsv.gz</code> - <code>work/summary_statistics/Bellenguez20202adrd_b38.tsv.gz</code> - <code>work/summary_statistics/Lake2023adrd_b38.tsv.gz</code></p>
+<p>Target PLINK Files (HABS-HD b38) - PLINK Genotype files: <code>work/habshd_gwas.bim</code>, <code>work/habshd_gwas.fam</code>, and <code>work/habshd_gwas.fam</code> - PLINK Phenotype file: <code>work/habshd_gwas.pheno</code> - PLINK Covariate file: <code>work/habshd_gwas.covar</code></p>
+<p>PRSice-2 will generate several output files:</p>
+<ul>
+<li><code>*all_scrore</code>: PRS for each defined Pt</li>
+<li><code>*prsice</code>: Summary statistics for Pt PRS</li>
+<li><code>*best</code>: Best Pt PRS based on R2</li>
+<li><code>*summary</code>: Sumary statistics for Best Pt PRS</li>
+</ul>
 <section id="ad-prs-kunkle-2019" class="level3">
 <h3 class="anchored" data-anchor-id="ad-prs-kunkle-2019">AD-PRS (Kunkle 2019)</h3>
+<ul>
+<li>What is the best Pt?</li>
+<li>What is the R2 for best Pt?</li>
+</ul>
 <div class="cell">
 <details>
 <summary>AD-PRS PRSice</summary>
@@ -378,6 +392,10 @@ Warning
 </section>
 <section id="adrd-prs-bellenguez-2022" class="level3">
 <h3 class="anchored" data-anchor-id="adrd-prs-bellenguez-2022">ADRD-PRS (Bellenguez 2022)</h3>
+<ul>
+<li>What is the best Pt?</li>
+<li>What is the R2 for best Pt?</li>
+</ul>
 <div class="cell">
 <details>
 <summary>ADRD-PRS PRSice</summary>
@@ -409,6 +427,10 @@ Warning
 </section>
 <section id="mama-prs-lake-2023" class="level3">
 <h3 class="anchored" data-anchor-id="mama-prs-lake-2023">MAMA-PRS (Lake 2023)</h3>
+<ul>
+<li>What is the best Pt?</li>
+<li>What is the R2 for best Pt?</li>
+</ul>
 <div class="cell">
 <details>
 <summary>MAMA-PRS PRSice</summary>
@@ -441,7 +463,12 @@ Warning
 </section>
 <section id="habs-hd" class="level2">
 <h2 class="anchored" data-anchor-id="habs-hd">HABS-HD</h2>
-<p>We will now evaluate the association each AD-PRS with the Clinical Dementia Rating Scale and cognitive impairment.</p>
+<p>We will now evaluate the association each AD-PRS with the Clinical Dementia Rating Scale and cognitive impairment. We will need the following files:</p>
+<ul>
+<li>Phenotypes: <code>work/habshd_pheno.csv</code></li>
+<li>Genetic Ancestry &amp; PCs: <code>work/habs_pca.tsv</code></li>
+<li>PRS: <code>work/prsice/Kunkle.all_score</code>, <code>work/prsice/Bellenguez.all_score</code>, or <code>work/prsice/Lake.all_score</code></li>
+</ul>
 <div class="cell">
 <details>
 <summary>Import Packages</summary>
@@ -457,7 +484,7 @@ Warning
 <summary>Import and munge data</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># File paths</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>pheno_path <span class="ot">=</span> <span class="st">"work/habshd_pheno.csv"</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>pcs_path <span class="ot">=</span> <span class="st">'work/habs_pca.tsv'</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>pcs_path <span class="ot">=</span> <span class="st">'work/habshd_pca.tsv'</span></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>ad_prs_path <span class="ot">=</span> <span class="st">'work/prsice/Kunkle.all_score'</span></span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># adrd_prs_path = 'work/prsice/Bellenguez.all_score'</span></span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"># mama_prs_path = 'work/prsice/Lake.all_score'</span></span>
