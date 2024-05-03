@@ -202,8 +202,8 @@ library(pROC)
 pheno_path = "work/habshd_pheno.csv"
 pcs_path = 'work/habshd_pca.tsv'
 ad_prs_path = 'work/prsice/Kunkle.all_score'
-# adrd_prs_path = 'work/prsice/Bellenguez.all_score'
-# mama_prs_path = 'work/prsice/Lake.all_score'
+adrd_prs_path = 'work/prsice/Bellenguez.all_score'
+mama_prs_path = 'work/prsice/Lake.all_score'
 
 ## HABS-HD Phenotypes
 habshd <- read_csv(pheno_path) %>% distinct(med_id, .keep_all = T)
@@ -217,18 +217,31 @@ pcs <- read_tsv(pcs_path) %>%
   filter(superpop != 'EAS')
 
 ## PRS  
-prs <- read_table(ad_prs_path) %>%
+prs_ad <- read_table(ad_prs_path) %>%
   janitor::clean_names() %>%
-  select(-fid)
+  select(-fid) %>% 
+  mutate_at(vars(starts_with("pt_")), list(z = ~as.vector(scale(.)))) %>%
+  magrittr::set_colnames(., paste0('ad_', colnames(.)))
+prs_adrd <- read_table(adrd_prs_path) %>%
+  janitor::clean_names() %>%
+  select(-fid) %>% 
+  mutate_at(vars(starts_with("pt_")), list(z = ~as.vector(scale(.)))) %>%
+  magrittr::set_colnames(., paste0('adrd_', colnames(.)))
+prs_mama <- read_table(mama_prs_path) %>%
+  janitor::clean_names() %>%
+  select(-fid) %>% 
+  mutate_at(vars(starts_with("pt_")), list(z = ~as.vector(scale(.)))) %>%
+  magrittr::set_colnames(., paste0('mama_', colnames(.)))
+
 
 ## Merge datasets
 dat <- habshd %>%
   left_join(pcs, by = c('med_id' = 'IID')) %>%
-  left_join(prs, by = c('med_id' = 'iid')) %>%
-  filter(!is.na(pt_5e_08) & !is.na(superpop)) %>%
+  left_join(prs_ad, by = c('med_id' = 'ad_iid')) %>%
+  left_join(prs_adrd, by = c('med_id' = 'adrd_iid')) %>%
+  left_join(prs_mama, by = c('med_id' = 'mama_iid')) %>%
+  filter(!is.na(ad_pt_5e_08) & !is.na(superpop)) %>% 
   mutate(
-    z_prs = scale(pt_5e_08)[,1],
-    # z_prs = scale(pt_0_1)[,1],
     race = fct_relevel(race, "NHW"), 
     superpop = fct_relevel(superpop, "EUR"), 
     dx = fct_recode(as.factor(cdx_cog), 'ctrl' = '0', 'case' = '1', 'case' = '2'), 
@@ -259,27 +272,113 @@ dat <- habshd %>%
 #| echo: true
 
 ## Violin Plots - DX
-ggplot(dat, aes(x = dx, y = z_prs, fill = dx)) + 
+ggplot(dat, aes(x = dx, y = ad_pt_5e_08_z, fill = dx)) + 
   geom_violin() + 
   geom_boxplot(width = 0.2, outliers = FALSE, fill = 'white') +
   theme_bw()
 
 ## Density Plots - DX
-ggplot(dat, aes(x = z_prs, fill = dx)) + 
+ggplot(dat, aes(x = ad_pt_5e_08_z, fill = dx)) + 
   geom_density(alpha = 0.5) + 
   theme_bw()
 
 ## Scatter plot - CDR
-ggplot(dat, aes(x = cdr_sum, y = z_prs)) + 
+ggplot(dat, aes(x = cdr_sum, y = ad_pt_5e_08_z)) + 
   geom_point() + 
   geom_smooth(method = 'lm') + 
   theme_bw()
 
 ## Violin Plots - super_pop
-ggplot(dat, aes(x = superpop, y = z_prs, fill = superpop)) + 
+ggplot(dat, aes(x = superpop, y = ad_pt_5e_08_z, fill = superpop)) + 
   geom_violin() + 
   geom_boxplot(width = 0.2, outliers = FALSE, fill = 'white') +
   theme_bw()
+
+```
+
+```{r}
+#| label: PRS_all
+#| code-fold: true
+#| code-summary: PRS All
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+#| echo: true
+
+pt_long <- dat %>% 
+  select(med_id, superpop, dx, starts_with(c("ad_", "adrd_", "mama_"))) %>%
+  select(med_id, superpop, dx, ends_with("_z")) %>%
+  pivot_longer(
+    cols = ad_pt_5e_08_z:mama_pt_1_z,
+    names_to = c('model'),
+    values_to = 'prs'
+  ) %>%
+  separate(model, into = c("model", "pt"), sep = "_pt_") %>%
+  mutate(
+    pt = str_replace(pt, "_z", ""),
+    pt = fct_relevel(pt, '5e_08', '1e_07', '1e_06', '1e_05', '0_0001', '0_001', '0_01', '0_1', '0_5', '1')
+  )
+
+ad_ga.p <- ggplot(pt_long %>% filter(model == 'ad'), aes(x = prs, fill = superpop)) + 
+  facet_wrap(vars(pt), ncol = 3) + 
+  geom_density(alpha = 0.5) + 
+  theme_bw() +
+  labs(
+    title = "Kunkle 2019", 
+    x = 'AD-PRS'
+  ) + 
+  theme(
+    text = element_text(size = 8),
+    panel.grid = element_blank(),
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold")
+  )
+
+ggsave('results/figures/ad_ga_pt.png', plot = ad_ga.p + theme(legend.position = 'non'), 
+       units = 'in', width = 3, height = 4)
+
+
+adrd_ga.p <-ggplot(pt_long %>% filter(model == 'adrd'), aes(x = prs, fill = superpop)) + 
+  facet_wrap(vars(pt), ncol = 3) + 
+  geom_density(alpha = 0.5) + 
+  theme_bw() +
+  labs(
+    title = "Bellenguez 2022", 
+    x = 'AD-PRS'
+  ) + 
+  theme(
+    text = element_text(size = 8),
+    panel.grid = element_blank(),
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold")
+  )
+
+ggsave('results/figures/adrd_ga_pt.png', plot = adrd_ga.p + theme(legend.position = 'non'), 
+       units = 'in', width = 3, height = 4)
+
+
+mama_ga.p <-ggplot(pt_long %>% filter(model == 'mama'), aes(x = prs, fill = superpop)) + 
+  facet_wrap(vars(pt), ncol = 3) + 
+  geom_density(alpha = 0.5) + 
+  theme_bw() +
+  labs(
+    title = "Lake 2023", 
+    x = 'AD-PRS'
+  ) + 
+  theme(
+    text = element_text(size = 8),
+    panel.grid = element_blank(),
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold")
+  )
+
+
+ggsave('results/figures/mama_ga_pt.png', plot = mama_ga.p + theme(legend.position = 'non'), 
+       units = 'in', width = 3, height = 4)
+ggsave('results/figures/mama_ga_pt_legend.png', plot = mama_ga.p, 
+       units = 'in', width = 3, height = 4)
+
 
 ```
 
