@@ -26,6 +26,7 @@ book:
     - part: scripts/prs.qmd
       chapters:
         - scripts/prsice.qmd
+        - scripts/prscsx.qmd
     - part: "Mendelian Randomization"
       chapters:
         - scripts/mr.qmd

@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.2.335">
+<meta name="generator" content="quarto-1.3.433">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -17,9 +17,10 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
   width: 0.8em;
-  margin: 0 0.8em 0.2em -1.6em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
@@ -46,43 +47,13 @@ pre.numberSource code > span > a:first-child::before
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
     padding: 0 4px; width: 4em;
-    color: #aaaaaa;
   }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
 div.sourceCode
   {   }
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 
@@ -93,7 +64,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../scripts/mr.html" rel="next">
+<link href="../scripts/prscsx.html" rel="next">
 <link href="../scripts/prs.html" rel="prev">
 <script src="../site_libs/quarto-html/quarto.js"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
@@ -120,7 +91,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
     "search-detached-cancel-button-title": "Cancel",
-    "search-submit-button-title": "Submit"
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
   }
 }</script>
 
@@ -131,11 +103,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
-  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
-    <div class="container-fluid d-flex justify-content-between">
-      <h1 class="quarto-secondary-nav-title">PRSice-2</h1>
-      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
-        <i class="bi bi-chevron-right"></i>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../scripts/prs.html">Polygenic Risk Scores</a></li><li class="breadcrumb-item"><a href="../scripts/prsice.html">PRSice-2</a></li></ol></nav>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
       </button>
     </div>
   </nav>
@@ -143,134 +120,158 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="../">Introduction to Genetic Epidemiology</a> 
         <div class="sidebar-tools-main">
-    <a href="https://github.com/AndrewsLabUCSF/IntroGeneticEpi" title="Source Code" class="sidebar-tool px-1"><i class="bi bi-github"></i></a>
-    <a href="https://twitter.com/intent/tweet?url=|url|" title="Twitter" class="sidebar-tool px-1"><i class="bi bi-twitter"></i></a>
+    <a href="https://github.com/AndrewsLabUCSF/IntroGeneticEpi" rel="" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+    <a href="https://twitter.com/intent/tweet?url=|url|" rel="" title="Twitter" class="quarto-navigation-tool px-1" aria-label="Twitter"><i class="bi bi-twitter"></i></a>
 </div>
     </div>
       </div>
-      <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="mt-2 flex-shrink-0 align-items-center">
         <div class="sidebar-search">
         <div id="quarto-search" class="" title="Search"></div>
         </div>
-      </div>
+        </div>
     <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a href="../index.html" class="sidebar-item-text sidebar-link">Introduction</a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+            <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introduction</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/schedule.html" class="sidebar-item-text sidebar-link">Schedule</a>
+  <a href="../scripts/schedule.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Schedule</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/conda.html" class="sidebar-item-text sidebar-link">Conda Env</a>
+  <a href="../scripts/conda.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Conda Env</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/habshd.html" class="sidebar-item-text sidebar-link">HABS-HD</a>
+  <a href="../scripts/habshd.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">HABS-HD</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/summarystats.html" class="sidebar-item-text sidebar-link">Summary Statistics</a>
+  <a href="../scripts/summarystats.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Summary Statistics</span></a>
   </div>
 </li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">Genome-wide Association Studies</a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
+ <span class="menu-text">Genome-wide Association Studies</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/gwas_qc.html" class="sidebar-item-text sidebar-link">GWAS QC</a>
+  <a href="../scripts/gwas_qc.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GWAS QC</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/gwas.html" class="sidebar-item-text sidebar-link">GWAS</a>
+  <a href="../scripts/gwas.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GWAS</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/gwas_ss.html" class="sidebar-item-text sidebar-link">GWAS-SS</a>
+  <a href="../scripts/gwas_ss.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GWAS-SS</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/ancestry.html" class="sidebar-item-text sidebar-link">Genetic Ancestry</a>
+  <a href="../scripts/ancestry.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Genetic Ancestry</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/genetic_corr.html" class="sidebar-item-text sidebar-link">Heritability &amp; Genetic Correlations</a>
+  <a href="../scripts/genetic_corr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Heritability &amp; Genetic Correlations</span></a>
   </div>
 </li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a href="../scripts/prs.html" class="sidebar-item-text sidebar-link">Polygenic Risk Scores</a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+            <a href="../scripts/prs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Polygenic Risk Scores</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/prsice.html" class="sidebar-item-text sidebar-link active">PRSice-2</a>
+  <a href="../scripts/prsice.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">PRSice-2</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../scripts/prscsx.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PRS-CSx</span></a>
   </div>
 </li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">Mendelian Randomization</a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true">
+ <span class="menu-text">Mendelian Randomization</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/mr.html" class="sidebar-item-text sidebar-link">Mendelian Randomization</a>
+  <a href="../scripts/mr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Mendelian Randomization</span></a>
   </div>
 </li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">Appendices</a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
       <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/references.html" class="sidebar-item-text sidebar-link">References</a>
+  <a href="../scripts/references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../scripts/acknowledgments.html" class="sidebar-item-text sidebar-link">Acknowledgments</a>
+  <a href="../scripts/acknowledgments.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Acknowledgments</span></a>
   </div>
 </li>
       </ul>
@@ -278,6 +279,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     </ul>
     </div>
 </nav>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
@@ -306,7 +308,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title d-none d-lg-block">PRSice-2</h1>
+<h1 class="title">PRSice-2</h1>
 </div>
 
 
@@ -332,12 +334,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>Laket et al 2023. Multi-ancestry meta analysis (MAMA) of Alzheimer’s disease and related dementias</li>
 </ul>
 <p>We are constructing the PRS across nine different P-value thresholds (5e-8, 1e-7, 1e-6, 1e-5, 1e-4, 0.001, 0.01, 0.1, 0.5, 1) and apply a clumping process with a window size of 250kb and an r2 &gt; 0.1.</p>
-<div class="callout-warning callout callout-style-default callout-captioned">
+<div class="callout callout-style-default callout-warning callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
-<div class="callout-caption-container flex-fill">
+<div class="callout-title-container flex-fill">
 Warning
 </div>
 </div>
@@ -486,8 +488,8 @@ Warning
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>pheno_path <span class="ot">=</span> <span class="st">"work/habshd_pheno.csv"</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>pcs_path <span class="ot">=</span> <span class="st">'work/habshd_pca.tsv'</span></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>ad_prs_path <span class="ot">=</span> <span class="st">'work/prsice/Kunkle.all_score'</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># adrd_prs_path = 'work/prsice/Bellenguez.all_score'</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"># mama_prs_path = 'work/prsice/Lake.all_score'</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>adrd_prs_path <span class="ot">=</span> <span class="st">'work/prsice/Bellenguez.all_score'</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>mama_prs_path <span class="ot">=</span> <span class="st">'work/prsice/Lake.all_score'</span></span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="do">## HABS-HD Phenotypes</span></span>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>habshd <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(pheno_path) <span class="sc">%&gt;%</span> <span class="fu">distinct</span>(med_id, <span class="at">.keep_all =</span> T)</span>
@@ -501,29 +503,42 @@ Warning
 <span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(superpop <span class="sc">!=</span> <span class="st">'EAS'</span>)</span>
 <span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="do">## PRS  </span></span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>prs <span class="ot">&lt;-</span> <span class="fu">read_table</span>(ad_prs_path) <span class="sc">%&gt;%</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>prs_ad <span class="ot">&lt;-</span> <span class="fu">read_table</span>(ad_prs_path) <span class="sc">%&gt;%</span></span>
 <span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  janitor<span class="sc">::</span><span class="fu">clean_names</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>fid)</span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="do">## Merge datasets</span></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> habshd <span class="sc">%&gt;%</span></span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(pcs, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">'med_id'</span> <span class="ot">=</span> <span class="st">'IID'</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(prs, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">'med_id'</span> <span class="ot">=</span> <span class="st">'iid'</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(pt_5e_08) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(superpop)) <span class="sc">%&gt;%</span></span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">z_prs =</span> <span class="fu">scale</span>(pt_5e_08)[,<span class="dv">1</span>],</span>
-<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># z_prs = scale(pt_0_1)[,1],</span></span>
-<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">race =</span> <span class="fu">fct_relevel</span>(race, <span class="st">"NHW"</span>), </span>
-<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">superpop =</span> <span class="fu">fct_relevel</span>(superpop, <span class="st">"EUR"</span>), </span>
-<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">dx =</span> <span class="fu">fct_recode</span>(<span class="fu">as.factor</span>(cdx_cog), <span class="st">'ctrl'</span> <span class="ot">=</span> <span class="st">'0'</span>, <span class="st">'case'</span> <span class="ot">=</span> <span class="st">'1'</span>, <span class="st">'case'</span> <span class="ot">=</span> <span class="st">'2'</span>), </span>
-<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">dx =</span> <span class="fu">fct_relevel</span>(dx, <span class="st">'ctrl'</span>), </span>
-<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">apoe =</span> <span class="fu">fct_recode</span>(apoe4_snp, </span>
-<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'e2+'</span> <span class="ot">=</span> <span class="st">'E2E2'</span>, <span class="st">'e2+'</span> <span class="ot">=</span> <span class="st">'E2E3'</span>,  </span>
-<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'e4+'</span> <span class="ot">=</span> <span class="st">'E3E4'</span>, <span class="st">'e4+'</span> <span class="ot">=</span> <span class="st">'E2E4'</span>, <span class="st">'e4+'</span> <span class="ot">=</span> <span class="st">'E4E4'</span>, </span>
-<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'e3/e3'</span> <span class="ot">=</span> <span class="st">'E3E3'</span></span>
-<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>                      ), </span>
-<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    <span class="at">apoe =</span> <span class="fu">fct_relevel</span>(apoe, <span class="st">'e3/e3'</span>)</span>
-<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>  ) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>fid) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_at</span>(<span class="fu">vars</span>(<span class="fu">starts_with</span>(<span class="st">"pt_"</span>)), <span class="fu">list</span>(<span class="at">z =</span> <span class="sc">~</span><span class="fu">as.vector</span>(<span class="fu">scale</span>(.)))) <span class="sc">%&gt;%</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  magrittr<span class="sc">::</span><span class="fu">set_colnames</span>(., <span class="fu">paste0</span>(<span class="st">'ad_'</span>, <span class="fu">colnames</span>(.)))</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>prs_adrd <span class="ot">&lt;-</span> <span class="fu">read_table</span>(adrd_prs_path) <span class="sc">%&gt;%</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>  janitor<span class="sc">::</span><span class="fu">clean_names</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>fid) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_at</span>(<span class="fu">vars</span>(<span class="fu">starts_with</span>(<span class="st">"pt_"</span>)), <span class="fu">list</span>(<span class="at">z =</span> <span class="sc">~</span><span class="fu">as.vector</span>(<span class="fu">scale</span>(.)))) <span class="sc">%&gt;%</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>  magrittr<span class="sc">::</span><span class="fu">set_colnames</span>(., <span class="fu">paste0</span>(<span class="st">'adrd_'</span>, <span class="fu">colnames</span>(.)))</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>prs_mama <span class="ot">&lt;-</span> <span class="fu">read_table</span>(mama_prs_path) <span class="sc">%&gt;%</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>  janitor<span class="sc">::</span><span class="fu">clean_names</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>fid) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_at</span>(<span class="fu">vars</span>(<span class="fu">starts_with</span>(<span class="st">"pt_"</span>)), <span class="fu">list</span>(<span class="at">z =</span> <span class="sc">~</span><span class="fu">as.vector</span>(<span class="fu">scale</span>(.)))) <span class="sc">%&gt;%</span></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>  magrittr<span class="sc">::</span><span class="fu">set_colnames</span>(., <span class="fu">paste0</span>(<span class="st">'mama_'</span>, <span class="fu">colnames</span>(.)))</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a><span class="do">## Merge datasets</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> habshd <span class="sc">%&gt;%</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(pcs, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">'med_id'</span> <span class="ot">=</span> <span class="st">'IID'</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(prs_ad, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">'med_id'</span> <span class="ot">=</span> <span class="st">'ad_iid'</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(prs_adrd, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">'med_id'</span> <span class="ot">=</span> <span class="st">'adrd_iid'</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(prs_mama, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">'med_id'</span> <span class="ot">=</span> <span class="st">'mama_iid'</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(ad_pt_5e_08) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(superpop)) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>    <span class="at">race =</span> <span class="fu">fct_relevel</span>(race, <span class="st">"NHW"</span>), </span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">superpop =</span> <span class="fu">fct_relevel</span>(superpop, <span class="st">"EUR"</span>), </span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">dx =</span> <span class="fu">fct_recode</span>(<span class="fu">as.factor</span>(cdx_cog), <span class="st">'ctrl'</span> <span class="ot">=</span> <span class="st">'0'</span>, <span class="st">'case'</span> <span class="ot">=</span> <span class="st">'1'</span>, <span class="st">'case'</span> <span class="ot">=</span> <span class="st">'2'</span>), </span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">dx =</span> <span class="fu">fct_relevel</span>(dx, <span class="st">'ctrl'</span>), </span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>    <span class="at">apoe =</span> <span class="fu">fct_recode</span>(apoe4_snp, </span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'e2+'</span> <span class="ot">=</span> <span class="st">'E2E2'</span>, <span class="st">'e2+'</span> <span class="ot">=</span> <span class="st">'E2E3'</span>,  </span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'e4+'</span> <span class="ot">=</span> <span class="st">'E3E4'</span>, <span class="st">'e4+'</span> <span class="ot">=</span> <span class="st">'E2E4'</span>, <span class="st">'e4+'</span> <span class="ot">=</span> <span class="st">'E4E4'</span>, </span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>                      <span class="st">'e3/e3'</span> <span class="ot">=</span> <span class="st">'E3E3'</span></span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>                      ), </span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>    <span class="at">apoe =</span> <span class="fu">fct_relevel</span>(apoe, <span class="st">'e3/e3'</span>)</span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>  ) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <section id="prs-distribution" class="level3">
@@ -536,24 +551,24 @@ Warning
 <details>
 <summary>PRS</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Violin Plots - DX</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dat, <span class="fu">aes</span>(<span class="at">x =</span> dx, <span class="at">y =</span> z_prs, <span class="at">fill =</span> dx)) <span class="sc">+</span> </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dat, <span class="fu">aes</span>(<span class="at">x =</span> dx, <span class="at">y =</span> ad_pt_5e_08_z, <span class="at">fill =</span> dx)) <span class="sc">+</span> </span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_violin</span>() <span class="sc">+</span> </span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">width =</span> <span class="fl">0.2</span>, <span class="at">outliers =</span> <span class="cn">FALSE</span>, <span class="at">fill =</span> <span class="st">'white'</span>) <span class="sc">+</span></span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="do">## Density Plots - DX</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dat, <span class="fu">aes</span>(<span class="at">x =</span> z_prs, <span class="at">fill =</span> dx)) <span class="sc">+</span> </span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dat, <span class="fu">aes</span>(<span class="at">x =</span> ad_pt_5e_08_z, <span class="at">fill =</span> dx)) <span class="sc">+</span> </span>
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span> </span>
 <span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span>
 <span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="do">## Scatter plot - CDR</span></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dat, <span class="fu">aes</span>(<span class="at">x =</span> cdr_sum, <span class="at">y =</span> z_prs)) <span class="sc">+</span> </span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dat, <span class="fu">aes</span>(<span class="at">x =</span> cdr_sum, <span class="at">y =</span> ad_pt_5e_08_z)) <span class="sc">+</span> </span>
 <span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
 <span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">'lm'</span>) <span class="sc">+</span> </span>
 <span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span>
 <span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="do">## Violin Plots - super_pop</span></span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dat, <span class="fu">aes</span>(<span class="at">x =</span> superpop, <span class="at">y =</span> z_prs, <span class="at">fill =</span> superpop)) <span class="sc">+</span> </span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dat, <span class="fu">aes</span>(<span class="at">x =</span> superpop, <span class="at">y =</span> ad_pt_5e_08_z, <span class="at">fill =</span> superpop)) <span class="sc">+</span> </span>
 <span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_violin</span>() <span class="sc">+</span> </span>
 <span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">width =</span> <span class="fl">0.2</span>, <span class="at">outliers =</span> <span class="cn">FALSE</span>, <span class="at">fill =</span> <span class="st">'white'</span>) <span class="sc">+</span></span>
 <span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -656,12 +671,6 @@ Warning
 <span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>  broom<span class="sc">::</span><span class="fu">tidy</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div class="cell">
-
-</div>
-<div class="cell">
-
-</div>
 
 
 </section>
@@ -695,9 +704,23 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     icon: icon
   };
   anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
   const clipboard = new window.ClipboardJS('.code-copy-button', {
-    target: function(trigger) {
-      return trigger.previousElementSibling;
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
     }
   });
   clipboard.on('success', function(e) {
@@ -762,6 +785,92 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       return note.innerHTML;
     });
   }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
   const findCites = (el) => {
     const parentEl = el.parentElement;
     if (parentEl) {
@@ -808,8 +917,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../scripts/mr.html" class="pagination-link">
-        <span class="nav-page-text">Mendelian Randomization</span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../scripts/prscsx.html" class="pagination-link">
+        <span class="nav-page-text">PRS-CSx</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

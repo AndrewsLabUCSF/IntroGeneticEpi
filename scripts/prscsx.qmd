@@ -1,0 +1,569 @@
+---
+output: html_document
+execute: 
+  freeze: auto
+editor_options: 
+  chunk_output_type: console
+---
+# PRS-CSx {.unnumbered}
+
+[PRS-CSx](https://github.com/getian107/PRScsx) uses a shared continuous shrinkage prior tocouple SNP effects across populations, which enables more accu-rate effect size estimation by sharing information between summarystatistics and leveraging LD diversity across discovery samples. The shared prior allows for correlated but varying effect size estimatesacross populations, retaining the flexibility of the modeling frame-work. In addition, PRS-CSx explicitly models population-specificallele frequencies and LD patterns, and inherits from PRS-CS thecomputational advantages of CS priors, and the efficient and robust posterior inference algorithm (Gibbs sampling). Given GWAS sum-mary statistics and ancestry-matched LD reference panels, PRS-CSxcalculates one polygenic score for each discovery sample, and inte-grates them by learning an optimal linear combination to producethe final PRS. 
+
+Ruan, Y. et al. Improving polygenic prediction in ancestrally diverse populations. [Nat. Genet. 54, 573–580 (2022)](https://www.nature.com/articles/s41588-022-01054-7).
+  
+
+## Estimate Cross-ancestry AD-PRS
+We constructed a Cross-ancestry AD-PRS using PRS-CSx-auto, using the ancestry-specific AD GWAS used by Lake et al 2023 in their Multi-ancestry Meta-Analysis. Due to the computational time, we used Snakemake workflow to run each chromsome separately.  
+
+- Bellenguez et al 2022. Stage 1, EUR
+- Kunkle et al 2021. AFR
+- Shigemizu et al 2021. EAS
+- Lake et al 2023. AMR
+
+```{bash}
+#| label: ad_prscsx
+#| code-fold: true
+#| code-summary: AD-PRS PRS-CSx
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+
+## PRS-CSx - Scorefile
+python resources/PRScsx/PRScsx.py \
+  --ref_dir=resources/PRScsx/ld_ref
+  --bim_prefix=work/habshd_hm3
+  --sst_file=['work/ad_eur_csx.txt', 'work/ad_afr_csx.txt', 'work/ad_eas_csx.txt', 'work/ad_amr_csx.txt']
+  --a=1
+  --b=0.5
+  --phi=None
+  --n_gwas=[625942, 7970, 8036, 2240]
+  --pop=['EUR', 'AFR', 'EAS', 'AMR']
+  --n_iter=4000
+  --n_burnin=2000
+  --thin=5
+  --out_dir=work/habshd
+  --out_name=habshd
+  --chrom=['1']
+  --meta=TRUE
+  --seed=None
+
+## PLINK to generate AD-PRS in HABS-HD   
+plink --bfile work/habshd_hm3 --score work/habshd/habshd_META_pst_eff_a1_b0.5_phiauto_chrAll.txt 2 4 6 sum
+mv plink.profile work/habshd/habshd_META_pst_eff_a1_b0.5_phiauto_chrAll_scores.txt
+  
+```
+
+
+Two AD-PRS were generated, one including APOE, and the other excluding the APOE region.
+
+- `work/prscsx/habshd_META_pst_eff_a1_b0.5_phiauto_chrAll_noAPOE_scores.txt`
+- `work/prscsx/habshd_META_pst_eff_a1_b0.5_phiauto_chrAll_scores.txt`
+
+## HABS-HD 
+
+We will now evaluate the association each AD-PRS with the Clinical Dementia Rating Scale and cognitive impairment. We will need the following files: 
+
+- Phenotypes: `work/habshd_pheno.csv`
+- Genetic Ancestry & PCs: `work/habs_pca.tsv`
+- PRSice: `work/prsice/Kunkle.all_score`, `work/prsice/Bellenguez.all_score`, or `work/prsice/Lake.all_score`
+- PRS-CSx: `work/prscsx/habshd_META_pst_eff_a1_b0.5_phiauto_chrAll_noAPOE_scores.txt` and `work/prscsx/habshd_META_pst_eff_a1_b0.5_phiauto_chrAll_scores.txt`
+
+```{r}
+#| label: packages
+#| code-fold: true
+#| code-summary: Import Packages
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+
+library(tidyverse)
+library(pROC)
+# library(janitor)
+# library(broom)
+# library(performance)
+
+```
+
+
+```{r}
+#| label: data
+#| code-fold: true
+#| code-summary: Import and munge data
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+
+# File paths
+pheno_path = "work/habshd_pheno.csv"
+pcs_path = 'work/habshd_pca.tsv'
+ad_prs_path = 'work/prsice/Kunkle.all_score'
+adrd_prs_path = 'work/prsice/Bellenguez.all_score'
+mama_prs_path = 'work/prsice/Lake.all_score'
+prscsx_path = 'work/prscsx/habshd_META_pst_eff_a1_b0.5_phiauto_chrAll_scores.txt'
+prscsx_no_apoe_path = 'work/prscsx/habshd_META_pst_eff_a1_b0.5_phiauto_chrAll_noAPOE_scores.txt'
+
+## HABS-HD Phenotypes
+habshd <- read_csv(pheno_path) %>% distinct(med_id, .keep_all = T)
+
+## Genetic Ancestry & PCs
+pcs <- read_tsv(pcs_path) %>%
+  filter(superpop == "HABS-HD") %>%
+  select(-Population, -cohort, -superpop, -FID) %>%
+  mutate(IID = as.numeric(IID)) %>%
+  rename(superpop = superpop_infered) %>%
+  filter(superpop != 'EAS')
+
+## PRS  
+prs_ad <- read_table(ad_prs_path) %>%
+  janitor::clean_names() %>%
+  select(-fid) %>% 
+  mutate_at(vars(starts_with("pt_")), list(z = ~as.vector(scale(.)))) %>%
+  magrittr::set_colnames(., paste0('ad_', colnames(.)))
+prs_adrd <- read_table(adrd_prs_path) %>%
+  janitor::clean_names() %>%
+  select(-fid) %>% 
+  mutate_at(vars(starts_with("pt_")), list(z = ~as.vector(scale(.)))) %>%
+  magrittr::set_colnames(., paste0('adrd_', colnames(.)))
+prs_mama <- read_table(mama_prs_path) %>%
+  janitor::clean_names() %>%
+  select(-fid) %>% 
+  mutate_at(vars(starts_with("pt_")), list(z = ~as.vector(scale(.)))) %>%
+  magrittr::set_colnames(., paste0('mama_', colnames(.)))
+prscsx <- read_table(prscsx_path) %>%
+  janitor::clean_names() %>%
+  select(-fid, -cnt, -cnt2, -pheno) %>%
+  mutate_at(vars(starts_with("scoresum")), list(z = ~as.vector(scale(.)))) %>%
+  rename(prscsx = scoresum, prscsx_z = z) 
+prscsx_noapoe <- read_table(prscsx_no_apoe_path) %>%
+  janitor::clean_names() %>%
+  select(-fid, -cnt, -cnt2, -pheno) %>%
+  mutate_at(vars(starts_with("scoresum")), list(z = ~as.vector(scale(.)))) %>%
+  rename(prscsx_noapoe = scoresum, prscsx_noapoe_z = z) 
+
+## Merge datasets
+dat <- habshd %>%
+  left_join(pcs, by = c('med_id' = 'IID')) %>%
+  left_join(prs_ad, by = c('med_id' = 'ad_iid')) %>%
+  left_join(prs_adrd, by = c('med_id' = 'adrd_iid')) %>%
+  left_join(prs_mama, by = c('med_id' = 'mama_iid')) %>%
+  left_join(prscsx, by = c('med_id' = 'iid')) %>%
+  left_join(prscsx_noapoe, by = c('med_id' = 'iid')) %>%
+  filter(!is.na(prscsx) & !is.na(superpop)) %>% 
+  mutate(
+    race = fct_relevel(race, "NHW"), 
+    superpop = fct_relevel(superpop, "EUR"), 
+    dx = fct_recode(as.factor(cdx_cog), 'ctrl' = '0', 'case' = '1', 'case' = '2'), 
+    dx = fct_relevel(dx, 'ctrl'), 
+    apoe = fct_recode(apoe4_snp, 
+                      'e2+' = 'E2E2', 'e2+' = 'E2E3',  
+                      'e4+' = 'E3E4', 'e4+' = 'E2E4', 'e4+' = 'E4E4', 
+                      'e3/e3' = 'E3E3'
+                      ), 
+    apoe = fct_relevel(apoe, 'e3/e3')
+  ) 
+
+```
+
+### PRS Distribution 
+
+- What is the distribution of the AD-PRS across cases and controls? 
+- What is the relationship between AD-PRS and CDR
+
+```{r}
+#| label: PRS
+#| code-fold: true
+#| code-summary: PRS
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+#| echo: true
+
+## Violin Plots - DX
+ggplot(dat, aes(x = dx, y = prscsx_z, fill = dx)) + 
+  geom_violin() + 
+  geom_boxplot(width = 0.2, outliers = FALSE, fill = 'white') +
+  theme_bw()
+
+## Density Plots - DX
+ggplot(dat, aes(x = prscsx_z, fill = dx)) + 
+  geom_density(alpha = 0.5) + 
+  theme_bw()
+
+## Scatter plot - CDR
+ggplot(dat, aes(x = cdr_sum, y = prscsx_z)) + 
+  geom_point() + 
+  geom_smooth(method = 'lm') + 
+  theme_bw()
+
+## Violin Plots - super_pop
+ggplot(dat, aes(x = superpop, y = prscsx_z, fill = superpop)) + 
+  geom_violin() + 
+  geom_boxplot(width = 0.2, outliers = FALSE, fill = 'white') +
+  theme_bw()
+
+## Violin Plots - DX
+ggplot(dat, aes(x = dx, y = prscsx_z, fill = dx)) + 
+  facet_wrap(vars(`superpop`)) + 
+  geom_violin() + 
+  geom_boxplot(width = 0.2, outliers = FALSE, fill = 'white') +
+  theme_bw()
+
+```
+
+```{r}
+#| label: PRS_all
+#| code-fold: true
+#| code-summary: PRS All
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+#| echo: true
+
+pt_long <- dat %>% 
+  select(med_id, superpop, dx, prscsx_z, prscsx_noapoe_z, starts_with(c("ad_", "adrd_", "mama_"))) %>%
+  select(med_id, superpop, dx, ends_with("_z")) %>%
+  pivot_longer(
+    cols = prscsx_z:mama_pt_1_z,
+    names_to = c('model'),
+    values_to = 'prs'
+  ) %>%
+  separate(model, into = c("model", "pt"), sep = "_pt_") %>%
+  mutate(
+    pt = str_replace(pt, "_z", ""),
+    pt = ifelse(model == 'prscsx_z', 1, pt),
+    pt = ifelse(model == 'prscsx_noapoe_z', 1, pt),
+    pt = fct_relevel(pt, '5e_08', '1e_07', '1e_06', '1e_05', '0_0001', '0_001', '0_01', '0_1', '0_5', '1')
+  )
+
+ad_ga.p <- ggplot(pt_long %>% filter(model == 'ad'), aes(x = prs, fill = superpop)) + 
+  facet_wrap(vars(pt), ncol = 3) + 
+  geom_density(alpha = 0.5) + 
+  theme_bw() +
+  labs(
+    title = "Kunkle 2019", 
+    x = 'AD-PRS'
+  ) + 
+  theme(
+    text = element_text(size = 8),
+    panel.grid = element_blank(),
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold")
+  )
+
+ggsave('results/figures/ad_ga_pt.png', plot = ad_ga.p + theme(legend.position = 'none'), 
+       units = 'in', width = 3, height = 4)
+
+
+adrd_ga.p <-ggplot(pt_long %>% filter(model == 'adrd'), aes(x = prs, fill = superpop)) + 
+  facet_wrap(vars(pt), ncol = 3) + 
+  geom_density(alpha = 0.5) + 
+  theme_bw() +
+  labs(
+    title = "Bellenguez 2022", 
+    x = 'AD-PRS'
+  ) + 
+  theme(
+    text = element_text(size = 8),
+    panel.grid = element_blank(),
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold")
+  )
+
+ggsave('results/figures/adrd_ga_pt.png', plot = adrd_ga.p + theme(legend.position = 'none'), 
+       units = 'in', width = 3, height = 4)
+
+
+mama_ga.p <-ggplot(pt_long %>% filter(model == 'mama'), aes(x = prs, fill = superpop)) + 
+  facet_wrap(vars(pt), ncol = 3) + 
+  geom_density(alpha = 0.5) + 
+  theme_bw() +
+  labs(
+    title = "Lake 2023", 
+    x = 'AD-PRS'
+  ) + 
+  theme(
+    text = element_text(size = 8),
+    panel.grid = element_blank(),
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold")
+  )
+
+
+ggsave('results/figures/mama_ga_pt.png', plot = mama_ga.p + theme(legend.position = 'none'), 
+       units = 'in', width = 3, height = 4)
+ggsave('results/figures/mama_ga_pt_legend.png', plot = mama_ga.p, 
+       units = 'in', width = 3, height = 4)
+
+
+prscsx_ga.p <-ggplot(pt_long %>% filter(model == 'prscsx_z'), aes(x = prs, fill = superpop)) + 
+  geom_density(alpha = 0.5) + 
+  theme_bw() +
+  labs(
+    title = "PRS-CSx w/ APOE", 
+    x = 'AD-PRS'
+  ) + 
+  theme(
+    text = element_text(size = 8),
+    panel.grid = element_blank(),
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold")
+  )
+
+ggsave('results/figures/prscsx_ga.png', plot = prscsx_ga.p + theme(legend.position = 'none'), 
+       units = 'in', width = 2, height = 2)
+
+
+prscsx_noapoe_ga.p <-ggplot(pt_long %>% filter(model == 'prscsx_noapoe_z'), aes(x = prs, fill = superpop)) + 
+  geom_density(alpha = 0.5) + 
+  theme_bw() +
+  labs(
+    title = "PRS-CSx w/o APOE", 
+    x = 'AD-PRS'
+  ) + 
+  theme(
+    text = element_text(size = 8),
+    panel.grid = element_blank(),
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold")
+  )
+
+ggsave('results/figures/prscsx_noapoe_ga.png', plot = prscsx_ga.p + theme(legend.position = 'none'), 
+       units = 'in', width = 2, height = 2)
+
+```
+
+### Predictive ability 
+- What is the association of the AD-PRS with cognitive impairment
+
+
+```{r}
+#| label: OR
+#| code-fold: true
+#| code-summary: OR
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+#| echo: true
+
+reduced_mod <- glm(dx ~ age + id_gender + PC1 + PC2 + PC3 + PC4, 
+    data = dat, family = 'binomial')
+
+full_mod <- glm(dx ~ prscsx_noapoe_z + apoe+ age + id_gender + PC1 + PC2 + PC3 + PC4, 
+    data = dat, family = 'binomial')
+
+full_mod <- glm(dx ~ prscsx_noapoe_z + apoe + age + id_gender + PC1 + PC2 + PC3 + PC4, 
+    data = dat %>% filter(superpop == "EUR"), family = 'binomial') 
+
+full_mod <- glm(dx ~ prscsx_z + age + id_gender + PC1 + PC2 + PC3 + PC4, 
+    data = dat %>% filter(superpop == "EUR"), family = 'binomial') 
+
+broom::tidy(full_mod, exponentiate = T, conf.int = T)
+```
+
+### Predictive accuracy 
+- What is the R2 of the reduced model containing only covariates (age, sex and PC1-4)?
+- What is the R2 of the full model including the AD-PRS (age, sex and PC1-4)?
+
+```{r}
+#| label: R2
+#| code-fold: true
+#| code-summary: R2
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+#| echo: true
+
+reduced_r2 <- performance::r2_nagelkerke(reduced_mod)
+full_r2 <- performance::r2_nagelkerke(full_mod)
+
+tribble(
+  ~reduced, ~full, ~diff,
+  reduced_r2, full_r2, full_r2 - reduced_r2
+) 
+```
+
+### Discrimination 
+- What is the AUC of the reduced model containing only covariates (age, sex and PC1-4)?
+- What is the AUC of the full model including the AD-PRS (age, sex and PC1-4)?
+
+```{r}
+#| label: AUC
+#| code-fold: true
+#| code-summary: AUC
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+#| echo: true
+
+# Predict probabilities
+probabilities_full <- predict(full_mod, type = "response")
+probabilities_reduced <- predict(full_mod, type = "response")
+
+# Calculate AUC
+roc_curve_full <- roc(response = dat$dx, predictor = probabilities_full)
+roc_curve_reduced <- roc(response = dat$dx, predictor = probabilities_reduced)
+
+auc(roc_curve_full)
+auc(roc_curve_reduced)
+
+ggroc(roc_curve_full) + 
+  geom_abline(slope = 1, intercept = 1, linetype = 2) + 
+  theme_bw()
+```
+
+### Calibration 
+```{r}
+#| label: calibration
+#| code-fold: true
+#| code-summary: Calibration
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+#| echo: true
+
+probs <- dat %>% 
+  select(med_id, dx) %>%
+  mutate(
+    predicted = probabilities_full
+  ) %>%
+  mutate(prob_bin = cut(predicted, breaks = seq(0, 1, by = 0.1), include.lowest = TRUE))
+
+cal_plot_breaks(probs, dx, predicted)
+
+dat2$predicted_probs <- predict(full_mod, type = "response")
+
+dat2 <- probs  %>%
+  group_by(prob_bin) %>%
+  summarise(observed_mean = mean(dx),
+            # predicted_mean = mean(predicted),
+            .groups = 'drop')
+
+## 
+
+glm(dx ~ z_prs + age + id_gender + id_education + PC1 + PC2 + PC3 + PC4, 
+                data = dat %>% filter(race == 'Hispanic'), family = 'binomial') %>%
+  broom::tidy()
+
+lm(cdr_sum ~ z_prs + age + id_gender + PC1 + PC2 + PC3 + PC4, 
+   data = dat %>% filter(superpop == 'AFR')) %>%
+  broom::tidy()
+
+
+```
+
+
+```{r}
+#| label: test1
+#| code-fold: true
+#| code-summary: Import Packages
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+#| echo: false
+
+lm(cdr_sum ~ prscsx_z + age + id_gender + race + PC1 + PC2 + PC3 + PC4, 
+   data = dat) %>%
+  broom::tidy()
+
+lm(cdr_sum ~ prscsx_z + age + id_gender + race + PC1 + PC2 + PC3 + PC4, 
+   data = dat %>% filter(superpop == 'AFR')) %>%
+  broom::tidy()
+
+lm(cdr_sum ~ prscsx_noapoe_z + apoe + age + id_gender + race + PC1 + PC2 + PC3 + PC4, 
+   data = dat) %>%
+  broom::tidy()
+
+lm(cdr_sum ~ prscsx_noapoe_z + apoe + age + id_gender + race + PC1 + PC2 + PC3 + PC4, 
+   data = dat %>% filter(superpop == 'EUR')) %>%
+  broom::tidy()
+```
+
+
+```{r}
+#| label: test2
+#| code-fold: true
+#| code-summary: Import Packages
+#| warning: false
+#| error: false
+#| message: false
+#| eval: false
+#| echo: false
+
+full_mod <- glm(dx ~ z_prs + age + id_gender + id_education + race + PC1 + PC2 + PC3 + PC4, 
+    data = dat, family = 'binomial')
+
+broom::tidy(full_mod)
+
+nagelkerke_r2 <- performance::r2_nagelkerke(full_mod)
+print(nagelkerke_r2)
+
+library(pROC)
+
+# Predict probabilities
+probabilities <- predict(full_mod, type = "response")
+
+# Calculate AUC
+roc_curve <- roc(response = dat$dx, predictor = probabilities)
+auc_value <- auc(roc_curve)
+print(auc_value)
+
+## Calibration 
+dat2 <- dat
+dat2$predicted_probs <- predict(full_mod, type = "response")
+
+dat2 <- dat2 %>%
+  mutate(prob_bin = cut(predicted_probs, breaks = seq(0, 1, by = 0.1), include.lowest = TRUE)) %>%
+  group_by(prob_bin) %>%
+  summarise(observed_mean = mean(dx),
+            predicted_mean = mean(predicted_probs),
+            .groups = 'drop')
+
+## 
+
+glm(dx ~ z_prs + age + id_gender + id_education + PC1 + PC2 + PC3 + PC4, 
+                data = dat %>% filter(race == 'Hispanic'), family = 'binomial') %>%
+  broom::tidy()
+
+lm(cdr_sum ~ z_prs + age + id_gender + PC1 + PC2 + PC3 + PC4, 
+   data = dat %>% filter(superpop == 'AFR')) %>%
+  broom::tidy()
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

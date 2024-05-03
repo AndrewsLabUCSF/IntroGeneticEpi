@@ -71,6 +71,10 @@ Heritability quantifies the proportion of phenotype variance attributable to gen
 - Rheenen, W. van, Peyrot, W. J., Schork, A. J., Lee, S. H. & Wray, N. R. Genetic correlations of polygenic disease traits: from theory to practice. [Nat Rev Genetics 20, 567–581 (2019)](https://doi.org/10.1038/s41576-019-0137-z).
 - Barry, C.-J. S. et al. How to estimate heritability: a guide for genetic epidemiologists. [Int J Epidemiol (2022)](https://doi.org/10.1093/ije/dyac224)
 
+**Coursework**
+
+- [Slides](https://www.dropbox.com/scl/fi/110b47u3hz4xlkjdbbprz/h2_rg.pdf?rlkey=uq2orwubh34m20pyeymljc6kq&dl=0)
+
 **Tools**
 
 - [LDSC](https://github.com/bulik/ldsc) @BulikSullivan2015
@@ -87,7 +91,11 @@ Polygenic risk scores (PRS) measure an invididueals total genetic liability for 
 - Choi, S. W., Mak, T. S.-H. & O’Reilly, P. F. Tutorial: a guide to performing polygenic risk score analyses. [Nat Protoc 15, 2759–2772 (2020)](https://www.nature.com/articles/s41596-020-0353-1).
 - Wand, H. et al. Improving reporting standards for polygenic scores in risk prediction studies. [Nature 591, 211–219 (2021)](https://www.nature.com/articles/s41586-021-03243-6).
 -  Lennon, N. J. et al. Selection, optimization and validation of ten chronic disease polygenic risk scores for clinical implementation in diverse US populations. [Nat. Med. 1–8 (2024)](doi:10.1038/s41591-024-02796-z)
-  
+
+**Coursework**
+
+- [Slides](https://www.dropbox.com/scl/fi/uep0hpgdspuokrf6m7acv/PRS_I.pdf?rlkey=nucaadncapq0tn84kefiyw9lc&dl=0)
+
 **Tools**  
 
 - [PRSice2](https://choishingwan.github.io/PRSice/) @Choi2019
@@ -102,7 +110,11 @@ The accuracy of polygenic risk scores (PRS) diminishes as the genetic distance f
 
 - Kachuri, L. et al. Principles and methods for transferring polygenic risk scores across global populations. [Nat. Rev. Genet. 1–18 (2023) doi:10.1038/s41576-023-00637-2](https://www.nature.com/articles/s41576-023-00637-2).
 - Ding, Y. et al. Polygenic scoring accuracy varies across the genetic ancestry continuum. [Nature 618, 774–781 (2023)](https://www.nature.com/articles/s41586-023-06079-4).
-  
+
+**Coursework**
+
+- [Slides](https://www.dropbox.com/scl/fi/n8di8kwbpxn3fg6krwrgv/PRS_II.pdf?rlkey=z7645os25w0c1o7kxwxwvpj9u&dl=0)
+
 **Tools**
 
 - [PRS-CSx](https://github.com/getian107/PRScsx) @Ruan2022
