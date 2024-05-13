@@ -239,6 +239,19 @@ bellenguez_b38 <- MungeSumstats::format_sumstats(path=bellenguez,
 
 write_tsv(bellenguez_b38, 'work/summary_statistics/Bellenguez20202adrd_b38.tsv.gz')
 
+zcat work/summary_statistics/Bellenguez20202adrd_b38.tsv.gz | awk 'BEGIN {FS=OFS="\t"} 
+    NR == 1 {print $0; next}
+    {
+        if ($2 == 19 && ($3 < 44405791 || $3 > 45409393)) print $0
+        else if ($2 != 19) print $0
+    }' | gzip > work/summary_statistics/Bellenguez20202adrd_noapoe_b38.tsv.gz
+
+awk 'BEGIN {FS=OFS="\t"} 
+    NR == 1 {print $0; next}
+    {
+        if ($2 == 19 && ($3 < 44405791 || $3 > 45409393)) print $0
+        else if ($2 != 19) print $0
+    }' work/summary_statistics/Bellenguez20202adrd_b38.tsv.gz > work/summary_statistics/Bellenguez20202adrd_noapoe_b38.tsv.gz
 ```
 
 ### Lake et al 2023

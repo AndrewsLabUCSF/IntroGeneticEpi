@@ -539,6 +539,18 @@ lm(cdr_sum ~ z_prs + age + id_gender + PC1 + PC2 + PC3 + PC4,
   broom::tidy()
 
 
+ad_glm <- function(x){
+  glm(dx ~ z_prs + age + id_gender + id_education + PC1 + PC2 + PC3 + PC4, 
+                data = x, family = 'binomial')
+}
+
+test <- nest(dat, .by = superpop) %>%
+  mutate(
+    res = map(data, ad_glm), 
+    df = map(res, broom::tidy)
+    )
+
+
 ```
 
 

@@ -1,3 +1,7 @@
 # Acknowledgments {.unnumbered}
 
 The code used to conduct the genotyping QC and ancestry assignments was developed by Brian Fulton-Howard, PhD for the QAIC workflow. 
+
+Data was obtained from The Health and Aging Brain Study (HABS-HD) Study Team* under request #387 "Methods in Genetic Epidemiology"
+
+*HABS-HD MPIs: Sid E O’Bryant, Kristine Yaffe, Arthur Toga, Robert Rissman, & Leigh Johnson; and the HABS-HD Investigators: Meredith Braskie, Kevin King, James R Hall, Melissa Petersen,Raymond Palmer, Robert Barber, Yonggang Shi, Fan Zhang, Rajesh Nandy, Roderick McColl, David Mason, Bradley Christian, Nicole Phillips, Stephanie Large, Joe Lee, Badri Vardarajan, Monica Rivera Mindt, Amrita Cheema, Lisa Barnes, Mark Mapstone, Annie Cohen, Amy Kind, Ozioma Okonkwo, Raul Vintimilla, Zhengyang Zhou, Michael Donohue, Rema Raman, Matthew Borzage, Michelle Mielke, Beau Ances, Ganesh Babulal, Jorge Llibre-Guerra, Carl Hill and Rocky Vig.
